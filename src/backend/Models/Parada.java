@@ -1,6 +1,6 @@
 package backend.Models;
 
-public class Parada {
+public class Parada implements Comparable<Parada>{
     private final String id;
     private String nombre;
 
@@ -33,5 +33,10 @@ public class Parada {
     @Override
     public int hashCode() {
         return id.hashCode();
+    }
+
+    @Override
+    public int compareTo(Parada otraParada) {
+        return this.nombre.compareTo(otraParada.getNombre());
     }
 }
