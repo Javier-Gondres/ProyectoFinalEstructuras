@@ -57,10 +57,10 @@ public class Main {
             grafo.agregarRuta(p8, p10, 46, 23, 6.0, 0);
 
             // Definir los pesos para los criterios
-            double pesoTiempo = 0.0;
+            double pesoTiempo = 0.5;
             double pesoDistancia = 0.5;
             double pesoTransbordo = 0.0;
-            double pesoCosto = 0.4;
+            double pesoCosto = 0.8;
 
             ResultadoRuta resultado = grafo.encontrarRutaMasCorta(p1, p10, pesoTiempo, pesoDistancia, pesoTransbordo, pesoCosto);
 

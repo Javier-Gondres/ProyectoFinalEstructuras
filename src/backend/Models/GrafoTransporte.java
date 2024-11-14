@@ -196,11 +196,11 @@ public class GrafoTransporte {
 
                 double distanciaActual = paradaWrapper.getDistanciaTotal();
                 double pesoRuta = calcularPesoRuta(ruta, pesoTiempo, pesoDistancia, pesoTransbordos, pesoCosto);
-                double distanciaTotal = distanciaActual + pesoRuta;
+                double distanciaAcumulada = distanciaActual + pesoRuta;
 
                 ParadaWrapper vecinoWrapper = paradaWrappers.get(vecino);
-                if (vecinoWrapper == null || distanciaTotal < vecinoWrapper.getDistanciaTotal()) {
-                    vecinoWrapper = new ParadaWrapper(vecino, distanciaTotal, paradaWrapper, ruta);
+                if (vecinoWrapper == null || distanciaAcumulada < vecinoWrapper.getDistanciaTotal()) {
+                    vecinoWrapper = new ParadaWrapper(vecino, distanciaAcumulada, paradaWrapper, ruta);
                     paradaWrappers.put(vecino, vecinoWrapper);
                     queue.add(vecinoWrapper);
                 }
@@ -220,6 +220,12 @@ public class GrafoTransporte {
         if (pesoTiempo < 0 || pesoDistancia < 0 || pesoTransbordos < 0 || pesoCosto < 0) {
             throw new IllegalArgumentException("Los pesos deben ser valores positivos.");
         }
+
+        double[] pesosNormalizados = normalizarPesos(pesoTiempo, pesoDistancia, pesoTransbordos, pesoCosto);
+        pesoTiempo = pesosNormalizados[0];
+        pesoDistancia = pesosNormalizados[1];
+        pesoTransbordos = pesosNormalizados[2];
+        pesoCosto = pesosNormalizados[3];
 
         List<ParadaWrapper> rutaWrappers  = dijkstra(origen, destino, pesoTiempo, pesoDistancia, pesoTransbordos, pesoCosto);
 
@@ -249,6 +255,20 @@ public class GrafoTransporte {
         }
 
         return new ResultadoRuta(paradas, distanciaTotal, costoTotal, transbordosTotal, tiempoTotal);
+    }
+
+    private double[] normalizarPesos(double pesoTiempo, double pesoDistancia, double pesoTransbordos, double pesoCosto) {
+        double sumaPesos = pesoTiempo + pesoDistancia + pesoTransbordos + pesoCosto;
+        if (sumaPesos == 0) {
+            //Se priorizara por defecto la distancia si la suma da 0
+            return new double[] { 0.0, 1.0, 0.0, 0.0 };
+        }
+        return new double[] {
+                pesoTiempo / sumaPesos,
+                pesoDistancia / sumaPesos,
+                pesoTransbordos / sumaPesos,
+                pesoCosto / sumaPesos
+        };
     }
 
     private double calcularPesoRuta(Ruta ruta, double pesoTiempo, double pesoDistancia, double pesoTransbordos, double pesoCosto) {
