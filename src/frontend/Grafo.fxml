@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.GridPane?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/23.0.1"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="backend.Controllers.GrafoController"
+            prefHeight="600.0" prefWidth="600.0">
+    <children>
+        <TabPane layoutX="10.0" layoutY="10.0" prefHeight="580.0" prefWidth="580.0">
+            <!-- Tab para Crear Parada -->
+            <Tab text="Crear Parada">
+                <AnchorPane>
+                    <children>
+                        <GridPane layoutX="50.0" layoutY="50.0" hgap="10" vgap="10">
+                            <padding>
+                                <Insets top="20" right="20" bottom="20" left="20"/>
+                            </padding>
+                            <children>
+                                <Label text="Nombre de la Parada:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                                <TextField fx:id="txtNombreParada" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                                <Button text="Agregar Parada" onAction="#handleAgregarParada"
+                                        GridPane.rowIndex="1" GridPane.columnIndex="1" />
+                            </children>
+                        </GridPane>
+                    </children>
+                </AnchorPane>
+            </Tab>
+
+            <!-- Tab para Crear Ruta -->
+            <Tab text="Crear Ruta">
+                <AnchorPane>
+                    <children>
+                        <GridPane layoutX="50.0" layoutY="30.0" hgap="10" vgap="10">
+                            <padding>
+                                <Insets top="20" right="20" bottom="20" left="20"/>
+                            </padding>
+                            <children>
+                                <Label text="Origen:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                                <ComboBox fx:id="cmbOrigenRuta" promptText="Seleccionar Origen" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                                <Label text="Destino:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                                <ComboBox fx:id="cmbDestinoRuta" promptText="Seleccionar Destino" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                                <Label text="Tiempo (min):" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                                <TextField fx:id="txtTiempoRuta" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                                <Label text="Distancia (m):" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                                <TextField fx:id="txtDistanciaRuta" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                                <Label text="Costo ($):" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                                <TextField fx:id="txtCostoRuta" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+
+                                <Label text="Transbordos:" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+                                <TextField fx:id="txtTransbordosRuta" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+
+                                <Button text="Agregar Ruta" onAction="#handleAgregarRuta"
+                                        GridPane.rowIndex="6" GridPane.columnIndex="1" />
+                            </children>
+                        </GridPane>
+                    </children>
+                </AnchorPane>
+            </Tab>
+
+            <!-- Tab para Eliminar Parada -->
+            <Tab text="Eliminar Parada">
+                <AnchorPane>
+                    <children>
+                        <GridPane layoutX="50.0" layoutY="50.0" hgap="10" vgap="10">
+                            <padding>
+                                <Insets top="20" right="20" bottom="20" left="20"/>
+                            </padding>
+                            <children>
+                                <Label text="Seleccionar Parada:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                                <ComboBox fx:id="cmbEliminarParada" promptText="Seleccionar Parada" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                                <Button text="Eliminar Parada" onAction="#handleEliminarParada"
+                                        GridPane.rowIndex="1" GridPane.columnIndex="1" />
+                            </children>
+                        </GridPane>
+                    </children>
+                </AnchorPane>
+            </Tab>
+
+            <!-- Tab para Eliminar Ruta -->
+            <Tab text="Eliminar Ruta">
+                <AnchorPane>
+                    <children>
+                        <GridPane layoutX="50.0" layoutY="30.0" hgap="10" vgap="10">
+                            <padding>
+                                <Insets top="20" right="20" bottom="20" left="20"/>
+                            </padding>
+                            <children>
+                                <Label text="Origen:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                                <ComboBox fx:id="cmbEliminarOrigenRuta" promptText="Seleccionar Origen" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                                <Label text="Destino:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                                <ComboBox fx:id="cmbEliminarDestinoRuta" promptText="Seleccionar Destino" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                                <Button text="Eliminar Ruta" onAction="#handleEliminarRuta"
+                                        GridPane.rowIndex="2" GridPane.columnIndex="1" />
+                            </children>
+                        </GridPane>
+                    </children>
+                </AnchorPane>
+            </Tab>
+
+            <Tab text="Buscar Ruta">
+                <AnchorPane>
+                    <children>
+                        <GridPane layoutX="50.0" layoutY="30.0" hgap="10" vgap="10">
+                            <padding>
+                                <Insets top="20" right="20" bottom="20" left="20"/>
+                            </padding>
+                            <children>
+                                <Label text="Origen:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                                <ComboBox fx:id="cmbBuscarOrigen" promptText="Seleccionar Origen" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                                <Label text="Destino:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                                <ComboBox fx:id="cmbBuscarDestino" promptText="Seleccionar Destino" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                                <Button text="Buscar Ruta" onAction="#handleBuscarRuta"
+                                        GridPane.rowIndex="2" GridPane.columnIndex="1" />
+
+                                <Label text="Resultado:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                                <TextArea fx:id="txtResultadoRuta" GridPane.rowIndex="3" GridPane.columnIndex="1"
+                                          prefRowCount="5" prefColumnCount="20" wrapText="true" editable="false"/>
+                            </children>
+                        </GridPane>
+                    </children>
+                </AnchorPane>
+            </Tab>
+        </TabPane>
+    </children>
+</AnchorPane>
