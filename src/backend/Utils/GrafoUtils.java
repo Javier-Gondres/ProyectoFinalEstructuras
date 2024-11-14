@@ -3,7 +3,12 @@ package backend.Utils;
 import backend.Models.Excepciones.ParadaInexistenteException;
 import backend.Models.GrafoTransporte;
 import backend.Models.Parada;
+import backend.Models.ParadaWrapper;
 import backend.Models.Ruta;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class GrafoUtils {
 
@@ -35,5 +40,15 @@ public class GrafoUtils {
         if (!grafo.contieneParada(destino)) {
             throw new ParadaInexistenteException("Error: La parada de destino '" + destino.getNombre() + "' no existe.");
         }
+    }
+
+    public static List<ParadaWrapper> construirRuta(ParadaWrapper nodeWrapper) {
+        List<ParadaWrapper> path = new ArrayList<>();
+        while (nodeWrapper != null) {
+            path.add(nodeWrapper);
+            nodeWrapper = nodeWrapper.getPredecesor();
+        }
+        Collections.reverse(path);
+        return path;
     }
 }

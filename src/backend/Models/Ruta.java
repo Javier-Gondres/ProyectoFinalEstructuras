@@ -2,14 +2,16 @@ package backend.Models;
 
 public class Ruta {
     private final String id;
+    private Parada origen;
     private Parada destino;
     private int tiempo;
     private int distancia;
     private double costo;
     private int transbordos;
 
-    public Ruta(Parada destino, int tiempo, int distancia, double costo, int transbordos) {
+    public Ruta(Parada origen, Parada destino, int tiempo, int distancia, double costo, int transbordos) {
         this.id = java.util.UUID.randomUUID().toString();
+        this.origen = origen;
         this.destino = destino;
         this.tiempo = tiempo;
         this.distancia = distancia;
@@ -61,9 +63,18 @@ public class Ruta {
         return id;
     }
 
+    public Parada getOrigen() {
+        return origen;
+    }
+
+    public void setOrigen(Parada origen) {
+        this.origen = origen;
+    }
+
     @Override
     public String toString() {
-        return "Destino: " + destino.getNombre() +
+        return "Origen: " + origen.getNombre() +
+                "Destino: " + destino.getNombre() +
                 ", Tiempo: " + tiempo + "min" +
                 ", Distancia: " + distancia + "m" +
                 ", Costo: $" + costo +

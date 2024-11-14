@@ -10,15 +10,16 @@ import backend.Utils.GrafoUtils;
 
 import java.util.*;
 
-public class FloydWarshall extends AlgoritmoGrafo {
+public class FloydWarshall extends AlgoritmoGrafo{
 
+    private GrafoTransporte grafo;
     private double[][] distancias;
     private int[][] predecesores;
     private Map<Parada, Integer> paradaIndices;
     private Map<Integer, Parada> indiceParadas;
 
     public FloydWarshall(GrafoTransporte grafo, double pesoTiempo, double pesoDistancia, double pesoTransbordos, double pesoCosto) {
-        super(grafo);
+        this.grafo = grafo;
         ejecutarFloydWarshall(pesoTiempo, pesoDistancia, pesoTransbordos, pesoCosto);
     }
 

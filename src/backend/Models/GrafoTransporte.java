@@ -4,6 +4,7 @@ import backend.Models.Excepciones.ParadaDuplicadaException;
 import backend.Models.Excepciones.ParadaInexistenteException;
 import backend.Models.Excepciones.RutaDuplicadaException;
 import backend.Models.Excepciones.RutaInexistenteException;
+import backend.Models.GraphAlgorithms.Dijkstra;
 import backend.Models.GraphAlgorithms.FloydWarshall;
 import backend.Models.Interfaces.Grafo;
 import backend.Utils.GrafoUtils;
@@ -87,7 +88,7 @@ public class GrafoTransporte implements Grafo {
             }
         }
 
-        Ruta nuevaRuta = new Ruta(destino, tiempo, distancia, costo, transbordos);
+        Ruta nuevaRuta = new Ruta(origen, destino, tiempo, distancia, costo, transbordos);
         rutasDesdeOrigen.add(nuevaRuta);
     }
 
@@ -100,6 +101,11 @@ public class GrafoTransporte implements Grafo {
 
         if (ruta == null) {
             throw new IllegalArgumentException("La ruta no puede ser nula");
+        }
+
+        Parada origen = ruta.getOrigen();
+        if (!listaAdyacencia.containsKey(origen) || !listaAdyacencia.get(origen).contains(ruta)) {
+            throw new RutaInexistenteException("Error: La ruta especificada no existe en el grafo.");
         }
 
         ruta.setTiempo(nuevoTiempo);
@@ -164,90 +170,12 @@ public class GrafoTransporte implements Grafo {
         return new ArrayList<>(listaAdyacencia.keySet());
     }
 
-    public List<ParadaWrapper> dijkstra(Parada origen, Parada destino, double pesoTiempo, double pesoDistancia, double pesoTransbordos, double pesoCosto) {
-        Map<Parada, ParadaWrapper> paradaWrappers = new HashMap<>();
-        PriorityQueue<ParadaWrapper> queue = new PriorityQueue<>();
-        Set<Parada> shortestPathFound = new HashSet<>();
-
-        ParadaWrapper sourceWrapper = new ParadaWrapper(origen, 0, null, null);
-        paradaWrappers.put(origen, sourceWrapper);
-        queue.add(sourceWrapper);
-
-        while (!queue.isEmpty()) {
-            ParadaWrapper paradaWrapper = queue.poll();
-            Parada parada = paradaWrapper.getParadaNodo();
-            if (shortestPathFound.contains(parada)) {
-                continue;
-            }
-            shortestPathFound.add(parada);
-
-            if (parada.equals(destino)) {
-                return buildPath(paradaWrapper);
-            }
-
-            for (Ruta ruta : listaAdyacencia.get(parada)) {
-                Parada vecino = ruta.getDestino();
-                if (shortestPathFound.contains(vecino)) {
-                    continue;
-                }
-
-                double distanciaActual = paradaWrapper.getDistanciaTotal();
-                double pesoRuta = GrafoUtils.calcularPesoRuta(ruta, pesoTiempo, pesoDistancia, pesoTransbordos, pesoCosto);
-                double distanciaAcumulada = distanciaActual + pesoRuta;
-
-                ParadaWrapper vecinoWrapper = paradaWrappers.get(vecino);
-                if (vecinoWrapper == null || distanciaAcumulada < vecinoWrapper.getDistanciaTotal()) {
-                    vecinoWrapper = new ParadaWrapper(vecino, distanciaAcumulada, paradaWrapper, ruta);
-                    paradaWrappers.put(vecino, vecinoWrapper);
-                    queue.add(vecinoWrapper);
-                }
-            }
-        }
-
-        return null;
-    }
-
     public ResultadoRuta obtenerRutaEntreParadasConDijkstra(Parada origen, Parada destino, double pesoTiempo, double pesoDistancia, double pesoTransbordos, double pesoCosto) throws ParadaInexistenteException, IllegalArgumentException {
         GrafoUtils.verificarParadasExistentes(this, origen, destino);
 
-        if (pesoTiempo < 0 || pesoDistancia < 0 || pesoTransbordos < 0 || pesoCosto < 0) {
-            throw new IllegalArgumentException("Los pesos deben ser valores positivos.");
-        }
+        Dijkstra dijkstra = new Dijkstra(listaAdyacencia, pesoTiempo, pesoDistancia, pesoTransbordos, pesoCosto);
 
-        double[] pesosNormalizados = GrafoUtils.normalizarPesos(pesoTiempo, pesoDistancia, pesoTransbordos, pesoCosto);
-        pesoTiempo = pesosNormalizados[0];
-        pesoDistancia = pesosNormalizados[1];
-        pesoTransbordos = pesosNormalizados[2];
-        pesoCosto = pesosNormalizados[3];
-
-        List<ParadaWrapper> rutaWrappers = dijkstra(origen, destino, pesoTiempo, pesoDistancia, pesoTransbordos, pesoCosto);
-
-        if (rutaWrappers == null) {
-            return new ResultadoRuta(Collections.emptyList(), 0, 0.0, 0, 0);
-        }
-
-        List<Parada> paradas = new ArrayList<>();
-        int distanciaTotal = 0;
-        double costoTotal = 0;
-        int transbordosTotal = 0;
-        int tiempoTotal = 0;
-
-        for (int i = 0; i < rutaWrappers.size(); i++) {
-            ParadaWrapper wrapper = rutaWrappers.get(i);
-            paradas.add(wrapper.getParadaNodo());
-
-            if (i > 0) { // El primer nodo no tiene rutaUsada
-                Ruta ruta = wrapper.getRutaUsada();
-                if (ruta != null) {
-                    distanciaTotal += ruta.getDistancia();
-                    costoTotal += ruta.getCosto();
-                    transbordosTotal += ruta.getTransbordos();
-                    tiempoTotal += ruta.getTiempo();
-                }
-            }
-        }
-
-        return new ResultadoRuta(paradas, distanciaTotal, costoTotal, transbordosTotal, tiempoTotal);
+        return dijkstra.obtenerRutaEntreParadas(origen, destino);
     }
 
     public ResultadoRuta obtenerRutaEntreParadasConFloyd(Parada origen, Parada destino, double pesoTiempo, double pesoDistancia, double pesoTransbordos, double pesoCosto) throws ParadaInexistenteException, RutaInexistenteException {
@@ -260,80 +188,6 @@ public class GrafoTransporte implements Grafo {
 
     public boolean contieneParada(Parada parada) {
         return listaAdyacencia.containsKey(parada);
-    }
-
-    private static List<ParadaWrapper> buildPath(ParadaWrapper nodeWrapper) {
-        List<ParadaWrapper> path = new ArrayList<>();
-        while (nodeWrapper != null) {
-            path.add(nodeWrapper);
-            nodeWrapper = nodeWrapper.getPredecesor();
-        }
-        Collections.reverse(path);
-        return path;
-    }
-
-    public class ParadaWrapper implements Comparable<ParadaWrapper> {
-        private Parada paradaNodo;
-        private double distanciaTotal;
-        private ParadaWrapper predecesor;
-        private Ruta rutaUsada;
-
-        public ParadaWrapper(Parada paradaNodo, double distanciaTotal, ParadaWrapper predecesor, Ruta rutaUsada) {
-            this.paradaNodo = paradaNodo;
-            this.distanciaTotal = distanciaTotal;
-            this.predecesor = predecesor;
-            this.rutaUsada = rutaUsada;
-        }
-
-        public Parada getParadaNodo() {
-            return paradaNodo;
-        }
-
-        public ParadaWrapper getPredecesor() {
-            return predecesor;
-        }
-
-        public double getDistanciaTotal() {
-            return distanciaTotal;
-        }
-
-        public Ruta getRutaUsada() {
-            return rutaUsada;
-        }
-
-        public void setParadaNodo(Parada paradaNodo) {
-            this.paradaNodo = paradaNodo;
-        }
-
-        public void setDistanciaTotal(double distancia) {
-            this.distanciaTotal = distancia;
-        }
-
-        public void setPredecesor(ParadaWrapper predecesor) {
-            this.predecesor = predecesor;
-        }
-
-        public void setRutaUsada(Ruta rutaUsada) {
-            this.rutaUsada = rutaUsada;
-        }
-
-        @Override
-        public int compareTo(ParadaWrapper other) {
-            return Double.compare(this.distanciaTotal, other.distanciaTotal);
-        }
-
-        @Override
-        public boolean equals(Object other) {
-            if (this == other) return true;
-            if (other == null || getClass() != other.getClass()) return false;
-            ParadaWrapper that = (ParadaWrapper) other;
-            return paradaNodo.equals(that.paradaNodo);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(paradaNodo);
-        }
     }
 }
 
