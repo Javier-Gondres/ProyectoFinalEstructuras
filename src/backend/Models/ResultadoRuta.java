@@ -3,14 +3,14 @@ package backend.Models;
 import java.util.List;
 
 public class ResultadoRuta {
-    private List<Parada> ruta;
+    private List<Parada> paradas;
     private int distanciaTotal;
     private double costoTotal;
     private int transbordosTotal;
     private int tiempoTotal;
 
-    public ResultadoRuta(List<Parada> ruta, int distanciaTotal, double costoTotal, int transbordosTotal, int tiempoTotal) {
-        this.ruta = ruta;
+    public ResultadoRuta(List<Parada> paradas, int distanciaTotal, double costoTotal, int transbordosTotal, int tiempoTotal) {
+        this.paradas = paradas;
         this.distanciaTotal = distanciaTotal;
         this.costoTotal = costoTotal;
         this.transbordosTotal = transbordosTotal;
@@ -18,7 +18,7 @@ public class ResultadoRuta {
     }
 
     public List<Parada> getRuta() {
-        return ruta;
+        return paradas;
     }
 
     public int getDistanciaTotal() {
@@ -39,7 +39,7 @@ public class ResultadoRuta {
 
     @Override
     public String toString() {
-        return "Ruta: " + ruta +
+        return "Ruta: " + paradas +
                 "\nDistancia total: " + distanciaTotal +
                 " m\nCosto total: $" + costoTotal +
                 "\nTransbordos totales: " + transbordosTotal +

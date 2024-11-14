@@ -62,18 +62,32 @@ public class Main {
             double pesoTransbordo = 0.0;
             double pesoCosto = 0.8;
 
-            ResultadoRuta resultado = grafo.encontrarRutaMasCorta(p1, p10, pesoTiempo, pesoDistancia, pesoTransbordo, pesoCosto);
+            ResultadoRuta resultadoDijkstra = grafo.obtenerRutaEntreParadasConDijkstra(p1, p10, pesoTiempo, pesoDistancia, pesoTransbordo, pesoCosto);
 
             System.out.println("Ruta más corta desde " + p1.getNombre() + " hasta " + p10.getNombre() + ":");
-            for (Parada parada : resultado.getRuta()) {
+            for (Parada parada : resultadoDijkstra.getRuta()) {
                 System.out.print(parada.getNombre() + " -> ");
             }
             System.out.println("FIN");
-            System.out.println("Distancia total: " + resultado.getDistanciaTotal());
-            System.out.println("Costo total: " + resultado.getCostoTotal());
-            System.out.println("Tiempo total: " + resultado.getTiempoTotal());
-            System.out.println("Transbordos totales: " + resultado.getTransbordosTotal());
+            System.out.println("Distancia total: " + resultadoDijkstra.getDistanciaTotal());
+            System.out.println("Costo total: " + resultadoDijkstra.getCostoTotal());
+            System.out.println("Tiempo total: " + resultadoDijkstra.getTiempoTotal());
+            System.out.println("Transbordos totales: " + resultadoDijkstra.getTransbordosTotal());
 
+            ResultadoRuta resultadoFloyd = grafo.obtenerRutaEntreParadasConFloyd(p1, p10, pesoTiempo, pesoDistancia, pesoTransbordo, pesoCosto);
+            if (!resultadoFloyd.getRuta().isEmpty()) {
+                System.out.println("Ruta más corta desde " + p1.getNombre() + " hasta " + p10.getNombre() + ":");
+                for (Parada parada : resultadoFloyd.getRuta()) {
+                    System.out.print(parada.getNombre() + " -> ");
+                }
+                System.out.println("FIN");
+                System.out.println("Distancia total: " + resultadoFloyd.getDistanciaTotal());
+                System.out.println("Costo total: " + resultadoFloyd.getCostoTotal());
+                System.out.println("Tiempo total: " + resultadoFloyd.getTiempoTotal());
+                System.out.println("Transbordos totales: " + resultadoFloyd.getTransbordosTotal());
+            } else {
+                System.out.println("No existe ruta entre " + p1.getNombre() + " y " + p10.getNombre());
+            }
         } catch (Exception e) {
             System.err.println(e.getMessage());
         }
