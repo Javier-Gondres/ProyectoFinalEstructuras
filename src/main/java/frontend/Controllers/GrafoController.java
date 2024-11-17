@@ -1,4 +1,4 @@
-package frontend.Screens.Grafo;
+package frontend.Controllers;
 
 import backend.Models.GrafoTransporte;
 import backend.Models.Parada;
