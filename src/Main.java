@@ -10,7 +10,7 @@ public class Main extends Application {
     public void start(Stage primaryStage) {
         try {
             FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(getClass().getResource("/frontend/Grafo.fxml"));
+            loader.setLocation(getClass().getResource("/frontend/Screens/Grafo/Grafo.fxml"));
             AnchorPane root = loader.load();
             Scene scene = new Scene(root);
             primaryStage.setTitle("Gestión de Grafo de Transporte");

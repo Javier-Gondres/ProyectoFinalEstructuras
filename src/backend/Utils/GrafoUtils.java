@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class GrafoUtils {
+public final class GrafoUtils {
 
     public static double[] normalizarPesos(double pesoTiempo, double pesoDistancia, double pesoTransbordos, double pesoCosto) {
         double sumaPesos = pesoTiempo + pesoDistancia + pesoTransbordos + pesoCosto;
