@@ -39,4 +39,8 @@ public class Parada implements Comparable<Parada>{
     public int compareTo(Parada otraParada) {
         return this.nombre.compareTo(otraParada.getNombre());
     }
+
+    public String getId() {
+        return id;
+    }
 }

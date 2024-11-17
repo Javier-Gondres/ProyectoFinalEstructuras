@@ -63,14 +63,16 @@ public class GrafoTransporte implements Grafo {
         }
     }
 
-    public void agregarRuta(Parada origen, Parada destino, int tiempo, int distancia, double costo, int transbordos)
+    public void agregarRuta(Ruta ruta)
             throws ParadaInexistenteException, RutaDuplicadaException {
 
+        Parada origen = ruta.getOrigen();
+        Parada destino = ruta.getDestino();
 
         if (origen == null || destino == null) {
             throw new IllegalArgumentException("Las paradas no pueden ser nulas");
         }
-        if (tiempo < 0 || distancia < 0 || costo < 0 || transbordos < 0) {
+        if (ruta.getTiempo() < 0 || ruta.getDistancia() < 0 || ruta.getCosto() < 0 || ruta.getTransbordos() < 0) {
             throw new IllegalArgumentException("Los valores no pueden ser negativos");
         }
         if (!listaAdyacencia.containsKey(origen)) {
@@ -82,13 +84,13 @@ public class GrafoTransporte implements Grafo {
 
         List<Ruta> rutasDesdeOrigen = listaAdyacencia.get(origen);
 
-        for (Ruta ruta : rutasDesdeOrigen) {
-            if (ruta.getDestino().equals(destino)) {
+        for (Ruta rutaBuscada : rutasDesdeOrigen) {
+            if (rutaBuscada.getDestino().equals(destino)) {
                 throw new RutaDuplicadaException("Error: Ya existe una ruta entre " + origen.getNombre() + " y " + destino.getNombre());
             }
         }
 
-        Ruta nuevaRuta = new Ruta(origen, destino, tiempo, distancia, costo, transbordos);
+        Ruta nuevaRuta = new Ruta(origen, destino, ruta.getTiempo(), ruta.getDistancia(), ruta.getCosto(), ruta.getTransbordos());
         rutasDesdeOrigen.add(nuevaRuta);
     }
 
