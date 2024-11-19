@@ -134,3 +134,8 @@
     -fx-text-fill: white; /* Color de texto activo */
 }
 
+#sideBar .eliminarButton {
+    -fx-border-color: #ffabb2;
+    -fx-text-fill: #ffabb2;
+}
+

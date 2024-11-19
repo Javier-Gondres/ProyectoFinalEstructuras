@@ -16,18 +16,21 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
 
-<BorderPane prefHeight="600.0" prefWidth="800.0" stylesheets="@grafoStyles.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="frontend.Controllers.GrafoController">
+<BorderPane prefHeight="600.0" prefWidth="800.0" stylesheets="@grafoStyles.css" xmlns="http://javafx.com/javafx/23.0.1"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="frontend.Controllers.GrafoController">
 
     <top>
-        <HBox alignment="CENTER_LEFT" prefHeight="46.0" prefWidth="800.0" style="-fx-background-color: #00171f;" BorderPane.alignment="CENTER">
+        <HBox alignment="CENTER_LEFT" prefHeight="46.0" prefWidth="800.0" style="-fx-background-color: #00171f;"
+              BorderPane.alignment="CENTER">
             <children>
                 <Pane prefHeight="46.0" prefWidth="249.0">
                     <children>
-                        <Button fx:id="toggleMenuButton" layoutX="14.0" layoutY="5.0" mnemonicParsing="false" styleClass="menu-button">
+                        <Button fx:id="toggleMenuButton" layoutX="14.0" layoutY="5.0" mnemonicParsing="false"
+                                styleClass="menu-button">
                             <graphic>
                                 <ImageView fitHeight="24" fitWidth="24">
                                     <image>
-                                        <Image url="@../../assets/menu.png" />
+                                        <Image url="@../../assets/menu.png"/>
                                     </image>
                                 </ImageView>
                             </graphic>
@@ -38,35 +41,37 @@
                     <children>
                         <HBox alignment="CENTER" prefHeight="46.0" prefWidth="214.0" spacing="10">
                             <children>
-                                <Button fx:id="toggleAdd" minWidth="42.0" mnemonicParsing="false" prefHeight="37.0" prefWidth="42.0" styleClass="menu-button">
+                                <Button fx:id="toggleAdd" minWidth="42.0" mnemonicParsing="false" prefHeight="37.0"
+                                        prefWidth="42.0" styleClass="menu-button">
                                     <graphic>
                                         <ImageView fitHeight="24" fitWidth="24">
                                             <image>
-                                                <Image url="@../../assets/add.png" />
+                                                <Image url="@../../assets/add.png"/>
                                             </image>
                                         </ImageView>
                                     </graphic>
-                           <HBox.margin>
-                              <Insets />
-                           </HBox.margin>
+                                    <HBox.margin>
+                                        <Insets/>
+                                    </HBox.margin>
                                 </Button>
-                                <ChoiceBox fx:id="addChoiceBox" prefHeight="28.0" prefWidth="126.0" />
+                                <ChoiceBox fx:id="addChoiceBox" prefHeight="28.0" prefWidth="126.0"/>
                             </children>
                         </HBox>
                         <Button fx:id="toggleClickable" mnemonicParsing="false" styleClass="menu-button">
                             <graphic>
                                 <ImageView fitHeight="24" fitWidth="24">
                                     <image>
-                                        <Image url="@../../assets/press-button.png" />
+                                        <Image url="@../../assets/press-button.png"/>
                                     </image>
                                 </ImageView>
                             </graphic>
                         </Button>
-                        <Button fx:id="toggleRemove" mnemonicParsing="false" prefHeight="37.0" prefWidth="113.0" styleClass="menu-button-trash">
+                        <Button fx:id="toggleRemove" mnemonicParsing="false" prefHeight="37.0" prefWidth="113.0"
+                                styleClass="menu-button-trash">
                             <graphic>
                                 <ImageView fitHeight="24" fitWidth="24">
                                     <image>
-                                        <Image url="@../../assets/remove.png" />
+                                        <Image url="@../../assets/remove.png"/>
                                     </image>
                                 </ImageView>
                             </graphic>
@@ -81,88 +86,106 @@
         <StackPane>
 
             <!-- Slider Bar -->
-            <VBox fx:id="sliderBar" alignment="TOP_CENTER" prefHeight="554.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+            <VBox fx:id="sliderBar" alignment="TOP_CENTER" prefHeight="554.0" prefWidth="200.0"
+                  BorderPane.alignment="CENTER">
                 <children>
-                    <Label prefHeight="26.0" prefWidth="44.0" text="Menú" textAlignment="CENTER" />
-                    <Button fx:id="crearGrafoButton" prefHeight="30.0" prefWidth="142.0" text="Crear nueva ruta" />
-                    <Button fx:id="cargarRutaButton" prefHeight="30.0" prefWidth="142.0" text="Cargar ruta" />
-                    <Button fx:id="eliminarRutaButton" prefHeight="30.0" prefWidth="142.0" text="Eliminar ruta" />
-                    <Button fx:id="salirButton" prefHeight="30.0" prefWidth="142.0" text="Salir" />
+                    <Label prefHeight="26.0" prefWidth="44.0" text="Menú" textAlignment="CENTER"/>
+                    <Button fx:id="crearGrafoButton" prefHeight="30.0" prefWidth="142.0" text="Crear nueva ruta"/>
+                    <Button fx:id="cargarRutaButton" prefHeight="30.0" prefWidth="142.0" text="Cargar ruta"/>
+                    <Button fx:id="eliminarRutaButton" prefHeight="30.0" prefWidth="142.0" text="Eliminar ruta"/>
+                    <Button fx:id="salirButton" prefHeight="30.0" prefWidth="142.0" text="Salir"/>
                 </children>
             </VBox>
             <!-- Side Bar -->
-            <VBox fx:id="sideBar" alignment="TOP_CENTER" prefHeight="554.0" prefWidth="250.0" BorderPane.alignment="CENTER">
+            <VBox fx:id="sideBar" alignment="TOP_CENTER" prefHeight="554.0" prefWidth="250.0"
+                  BorderPane.alignment="CENTER">
                 <children>
                     <Pane fx:id="panelActualizarParada" prefHeight="295.0" prefWidth="230.0">
                         <children>
-                            <Label layoutX="73.0" layoutY="14.0" text="Informacion" />
-                     <Pane layoutX="2.0" layoutY="60.599998474121094">
-                        <children>
-                                    <Label layoutY="3.200000762939453" text="ID:" />
-                           <TextField fx:id="textFieldIdParada" disable="true" editable="false" layoutX="78.0" prefHeight="26.0" prefWidth="140.0" />
-                        </children>
-                     </Pane>
-                     <Pane layoutX="2.0" layoutY="114.0" prefHeight="45.0" prefWidth="231.0">
-                        <children>
-                                    <TextField fx:id="textFieldNombreParada" disable="true" layoutX="79.0" layoutY="1.0" prefHeight="26.0" prefWidth="140.0" />
-                                    <Label layoutY="8.0" prefHeight="20.0" prefWidth="75.0" text="Nombre:" />
-                        </children>
-                     </Pane>
-                            <Button fx:id="guardarParadaButton" layoutX="46.0" layoutY="191.0" prefHeight="30.0" prefWidth="142.0" text="Actualizar" />
+                            <Label layoutX="73.0" layoutY="14.0" text="Informacion"/>
+                            <Pane layoutX="2.0" layoutY="60.599998474121094">
+                                <children>
+                                    <Label layoutY="3.200000762939453" text="ID:"/>
+                                    <TextField fx:id="textFieldIdParada" disable="true" editable="false" layoutX="78.0"
+                                               prefHeight="26.0" prefWidth="140.0"/>
+                                </children>
+                            </Pane>
+                            <Pane layoutX="2.0" layoutY="114.0" prefHeight="45.0" prefWidth="231.0">
+                                <children>
+                                    <TextField fx:id="textFieldNombreParada" disable="true" layoutX="79.0" layoutY="1.0"
+                                               prefHeight="26.0" prefWidth="140.0"/>
+                                    <Label layoutY="8.0" prefHeight="20.0" prefWidth="75.0" text="Nombre:"/>
+                                </children>
+                            </Pane>
+                            <Button fx:id="guardarParadaButton" layoutX="46.0" layoutY="191.0" prefHeight="30.0"
+                                    prefWidth="142.0" text="Actualizar"/>
+                            <Button fx:id="eliminarParadaButton" styleClass="eliminarButton" disable="true"
+                                    layoutX="46.0" layoutY="191.0" prefHeight="30.0" prefWidth="142.0" text="Eliminar"
+                                    visible="false"/>
                         </children>
                     </Pane>
                     <Pane fx:id="panelActualizarRuta" prefHeight="592.0" prefWidth="230.0" visible="false">
                         <children>
-                            <Button fx:id="actualizarRutaButton" disable="true" layoutX="44.0" layoutY="292.0" prefHeight="30.0" prefWidth="142.0" text="Actualizar" />
-                            <Label layoutX="73.0" layoutY="14.0" text="Informacion" />
-                     <Group layoutX="4.0" layoutY="44.0">
-                        <children>
-                                    <Label prefHeight="20.0" prefWidth="109.0" text="ID:" />
-                                    <TextField fx:id="textFieldIdRuta" disable="true" editable="false" layoutX="114.0" layoutY="1.0" prefHeight="26.0" prefWidth="109.0" />
-                        </children>
-                     </Group>
-                     <Group layoutX="4.0" layoutY="90.0">
-                        <children>
-                           <Label prefHeight="20.0" prefWidth="109.0" text="Tiempo(min)" />
-                           <Spinner fx:id="spinnerTiempo" disable="true" editable="true" layoutX="113.0" layoutY="1.0" prefHeight="26.0" prefWidth="111.0" />
-                        </children>
-                     </Group>
-                     <Group layoutX="3.0" layoutY="143.0">
-                        <children>
-                           <Label prefHeight="20.0" prefWidth="81.0" text="Costo($)" />
-                           <Spinner fx:id="spinnerCosto" disable="true" editable="true" layoutX="112.0" layoutY="-3.0" prefHeight="26.0" prefWidth="111.0" />
-                        </children>
-                     </Group>
-                     <Group layoutX="5.0" layoutY="183.0">
-                        <children>
-                           <Label layoutY="5.0" prefHeight="20.0" prefWidth="95.0" text="Transbordos" />
-                           <Spinner fx:id="spinnerTranbordos" disable="true" editable="true" layoutX="110.0" prefHeight="26.0" prefWidth="109.0" />
-                        </children>
-                     </Group>
-                     <Group layoutX="7.0" layoutY="239.0">
-                        <children>
-                           <Label layoutY="3.0" prefHeight="20.0" prefWidth="107.0" text="Distancia(m)" />
-                           <Spinner fx:id="spinnerDistancia" disable="true" editable="true" layoutX="109.0" prefHeight="26.0" prefWidth="110.0" />
-                        </children>
-                     </Group>
+                            <Button fx:id="actualizarRutaButton" disable="true" layoutX="44.0" layoutY="292.0"
+                                    prefHeight="30.0" prefWidth="142.0" text="Actualizar"/>
+                            <Label layoutX="73.0" layoutY="14.0" text="Informacion"/>
+                            <Group layoutX="4.0" layoutY="44.0">
+                                <children>
+                                    <Label prefHeight="20.0" prefWidth="109.0" text="ID:"/>
+                                    <TextField fx:id="textFieldIdRuta" disable="true" editable="false" layoutX="114.0"
+                                               layoutY="1.0" prefHeight="26.0" prefWidth="109.0"/>
+                                </children>
+                            </Group>
+                            <Group layoutX="4.0" layoutY="90.0">
+                                <children>
+                                    <Label prefHeight="20.0" prefWidth="109.0" text="Tiempo(min)"/>
+                                    <Spinner fx:id="spinnerTiempo" disable="true" editable="true" layoutX="113.0"
+                                             layoutY="1.0" prefHeight="26.0" prefWidth="111.0"/>
+                                </children>
+                            </Group>
+                            <Group layoutX="3.0" layoutY="143.0">
+                                <children>
+                                    <Label prefHeight="20.0" prefWidth="81.0" text="Costo($)"/>
+                                    <Spinner fx:id="spinnerCosto" disable="true" editable="true" layoutX="112.0"
+                                             layoutY="-3.0" prefHeight="26.0" prefWidth="111.0"/>
+                                </children>
+                            </Group>
+                            <Group layoutX="5.0" layoutY="183.0">
+                                <children>
+                                    <Label layoutY="5.0" prefHeight="20.0" prefWidth="95.0" text="Transbordos"/>
+                                    <Spinner fx:id="spinnerTranbordos" disable="true" editable="true" layoutX="110.0"
+                                             prefHeight="26.0" prefWidth="109.0"/>
+                                </children>
+                            </Group>
+                            <Group layoutX="7.0" layoutY="239.0">
+                                <children>
+                                    <Label layoutY="3.0" prefHeight="20.0" prefWidth="107.0" text="Distancia(m)"/>
+                                    <Spinner fx:id="spinnerDistancia" disable="true" editable="true" layoutX="109.0"
+                                             prefHeight="26.0" prefWidth="110.0"/>
+                                </children>
+                            </Group>
                         </children>
                     </Pane>
                     <Pane fx:id="panelCrearRuta" prefHeight="373.0" prefWidth="230.0" visible="false">
                         <children>
-                            <Button fx:id="crearRutaButton" layoutX="44.0" layoutY="174.0" prefHeight="30.0" prefWidth="142.0" text="Crear" />
-                            <Label alignment="CENTER" contentDisplay="CENTER" layoutX="2.0" layoutY="14.0" prefHeight="20.0" prefWidth="226.0" text="Crear Ruta" />
-                     <Group layoutX="14.0" layoutY="60.0">
-                        <children>
-                           <Label layoutY="3.0" text="Parada Origen:" />
-                           <Circle fill="#00171f" layoutX="137.0" layoutY="13.0" radius="13.0" stroke="BLACK" strokeType="INSIDE" />
-                        </children>
-                     </Group>
-                     <Group layoutX="14.0" layoutY="111.0">
-                        <children>
-                           <Label layoutY="3.0" text="Parada Destino:" />
-                           <Circle fill="#adebff" layoutX="137.0" layoutY="13.0" radius="13.0" stroke="BLACK" strokeType="INSIDE" />
-                        </children>
-                     </Group>
+                            <Button fx:id="crearRutaButton" layoutX="44.0" layoutY="174.0" prefHeight="30.0"
+                                    prefWidth="142.0" text="Crear"/>
+                            <Label alignment="CENTER" contentDisplay="CENTER" layoutX="2.0" layoutY="14.0"
+                                   prefHeight="20.0" prefWidth="226.0" text="Crear Ruta"/>
+                            <Group layoutX="14.0" layoutY="60.0">
+                                <children>
+                                    <Label layoutY="3.0" text="Parada Origen:"/>
+                                    <Circle fill="#00171f" layoutX="137.0" layoutY="13.0" radius="13.0" stroke="BLACK"
+                                            strokeType="INSIDE"/>
+                                </children>
+                            </Group>
+                            <Group layoutX="14.0" layoutY="111.0">
+                                <children>
+                                    <Label layoutY="3.0" text="Parada Destino:"/>
+                                    <Circle fill="#adebff" layoutX="137.0" layoutY="13.0" radius="13.0" stroke="BLACK"
+                                            strokeType="INSIDE"/>
+                                </children>
+                            </Group>
                         </children>
                     </Pane>
                 </children>
@@ -171,6 +194,6 @@
     </left>
 
     <center>
-        <StackPane fx:id="graphContainer" style="-fx-background-color: #ecf0f1;" />
+        <StackPane fx:id="graphContainer" style="-fx-background-color: #ecf0f1;"/>
     </center>
 </BorderPane>

@@ -54,7 +54,6 @@ import java.util.function.UnaryOperator;
 
 public class GrafoController implements ViewerListener {
 
-
     @FXML
     private StackPane graphContainer;
 
@@ -110,6 +109,8 @@ public class GrafoController implements ViewerListener {
     public TextField textFieldNombreParada;
     @FXML
     public TextField textFieldIdParada;
+    @FXML
+    public Button eliminarParadaButton;
 
     //TextFields del panel para actualizar ruta
     @FXML
@@ -357,6 +358,7 @@ public class GrafoController implements ViewerListener {
         salirButton.setOnAction(event -> salir());
 
         guardarParadaButton.setOnAction(event -> updateParada());
+        eliminarParadaButton.setOnAction(event -> removeParada());
 
         crearRutaButton.setOnAction(event -> createRuta());
 
@@ -381,15 +383,24 @@ public class GrafoController implements ViewerListener {
 
     public void resetParadas() {
         if (destinoSeleccionado != null) {
-            graph.getNode(destinoSeleccionado.getId()).removeAttribute("ui.class");
+            Node nodo = graph.getNode(destinoSeleccionado.getId());
+            if(nodo != null){
+                nodo.removeAttribute("ui.class");
+            }
         }
 
         if (origenSeleccionado != null) {
-            graph.getNode(origenSeleccionado.getId()).removeAttribute("ui.class");
+            Node nodo = graph.getNode(origenSeleccionado.getId());
+            if(nodo != null){
+                nodo.removeAttribute("ui.class");
+            }
         }
 
         if (paradaSeleccionada != null) {
-            graph.getNode(paradaSeleccionada.getId()).removeAttribute("ui.class");
+            Node nodo = graph.getNode(paradaSeleccionada.getId());
+            if(nodo != null){
+                nodo.removeAttribute("ui.class");
+            }
         }
 
         paradaSeleccionada = null;
@@ -583,8 +594,9 @@ public class GrafoController implements ViewerListener {
         nodo.setAttribute("layout.weight", 1);
     }
 
-    public void handleNodeClicked(String nodoId){
+    public void handleNodeClicked(String nodoId) {
         System.out.println(nodoId);
+        System.out.println(currentMode);
         Node clickedNode = graph.getNode(nodoId);
         if (clickedNode == null) {
             return;
@@ -621,6 +633,35 @@ public class GrafoController implements ViewerListener {
             }
 
             crearRutaButton.setDisable(origenSeleccionado == null || destinoSeleccionado == null);
+        } else if (currentMode == Mode.REMOVE) {
+            if (paradaSeleccionada == null) {
+                paradaSeleccionada = parada;
+                clickedNode.setAttribute("ui.class", "importante");
+            } else if (paradaSeleccionada.getId().equals(nodoId)) {
+                paradaSeleccionada = null;
+                clickedNode.removeAttribute("ui.class");
+            } else {
+                graph.getNode(paradaSeleccionada.getId()).removeAttribute("ui.class");
+                paradaSeleccionada = parada;
+                clickedNode.setAttribute("ui.class", "importante");
+            }
+
+            if(paradaSeleccionada != null){
+                handleShowPane(panelActualizarParada);
+                paradaSeleccionada = parada;
+                textFieldIdParada.setText(parada.getId());
+                textFieldNombreParada.setText(parada.getNombre());
+                textFieldNombreParada.setDisable(true);
+
+                showElement(eliminarParadaButton);
+                hideElement(guardarParadaButton);
+
+                eliminarParadaButton.setDisable(false);
+            }
+            else{
+                eliminarParadaButton.setDisable(true);
+            }
+
         } else {
             handleShowPane(panelActualizarParada);
             if (paradaSeleccionada != null) {
@@ -635,6 +676,51 @@ public class GrafoController implements ViewerListener {
             textFieldNombreParada.setDisable(false);
         }
     }
+
+    public void removeParada() {
+        if(paradaSeleccionada == null){
+            System.err.println("No se pudo eliminar la parada porque es null");
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Error");
+            errorAlert.setHeaderText(null);
+            errorAlert.setContentText("No se pudo eliminar la parada. Inténtelo más tarde.");
+            errorAlert.showAndWait();
+            return;
+        }
+
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirmación de eliminación");
+        alert.setHeaderText("");
+        alert.setContentText("¿Está seguro que desea eliminar la parada '" + paradaSeleccionada.getNombre() + "' y todas sus rutas asociadas?");
+        System.out.println("Se supone que abrio");
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            try {
+                grafoTransporte.eliminarParada(paradaSeleccionada);
+
+                graph.removeNode(paradaSeleccionada.getId());
+
+                resetParadas();
+                textFieldIdParada.setText(null);
+                textFieldNombreParada.setText(null);
+                eliminarParadaButton.setDisable(true);
+
+                Alert infoAlert = new Alert(Alert.AlertType.INFORMATION);
+                infoAlert.setTitle("Parada eliminada");
+                infoAlert.setHeaderText(null);
+                infoAlert.setContentText("La parada y sus rutas asociadas han sido eliminadas.");
+                infoAlert.showAndWait();
+            } catch (ParadaInexistenteException e) {
+                System.err.println("No se pudo eliminar la parada: " + e);
+                Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                errorAlert.setTitle("Error");
+                errorAlert.setHeaderText(null);
+                errorAlert.setContentText("No se pudo eliminar la parada. Inténtelo más tarde.");
+                errorAlert.showAndWait();
+            }
+        }
+    }
+
 
     public void updateParada() {
         try {
