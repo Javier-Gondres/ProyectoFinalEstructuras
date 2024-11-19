@@ -1,11 +1,13 @@
 package backend.Models;
 
+import backend.Utils.IDGenerator;
+
 public class Parada implements Comparable<Parada>{
     private final String id;
     private String nombre;
 
     public Parada(String nombre) {
-        this.id = java.util.UUID.randomUUID().toString();
+        this.id = IDGenerator.generateId(8);
         this.nombre = nombre;
     }
 

@@ -557,7 +557,6 @@ public class GrafoController implements ViewerListener {
         System.exit(0);
     }
 
-
     private void addNode(String nombre) {
         Parada nuevaParada = new Parada(nombre);
 
@@ -581,12 +580,12 @@ public class GrafoController implements ViewerListener {
         Node nodo = graph.addNode(nodeId);
         nodo.setAttribute("parada", nuevaParada);
         nodo.setAttribute("ui.label", nuevaParada.getNombre());
+        nodo.setAttribute("layout.weight", 1);
     }
 
-    @Override
-    public void buttonPushed(String id) {
-        System.out.println(id);
-        Node clickedNode = graph.getNode(id);
+    public void handleNodeClicked(String nodoId){
+        System.out.println(nodoId);
+        Node clickedNode = graph.getNode(nodoId);
         if (clickedNode == null) {
             return;
         }
@@ -702,6 +701,7 @@ public class GrafoController implements ViewerListener {
                             nuevaRuta.getCosto(),
                             nuevaRuta.getTransbordos());
                     edge.setAttribute("ui.label", labelText);
+                    edge.setAttribute("layout.weight", 5);
                 }
             }
 
@@ -802,7 +802,6 @@ public class GrafoController implements ViewerListener {
             spinnerCosto.setDisable(false);
             spinnerTranbordos.setDisable(false);
             actualizarRutaButton.setDisable(false);
-            textFieldIdRuta.setDisable(false);
 
             textFieldIdRuta.setText(rutaSeleccionada.getId());
             updateSpinners(rutaSeleccionada);
@@ -812,7 +811,6 @@ public class GrafoController implements ViewerListener {
             spinnerCosto.setDisable(true);
             spinnerTranbordos.setDisable(true);
             actualizarRutaButton.setDisable(true);
-            textFieldIdRuta.setDisable(false);
             textFieldIdRuta.setText(null);
             resetSpinners();
         }
@@ -914,6 +912,11 @@ public class GrafoController implements ViewerListener {
     }
 
     @Override
+    public void buttonPushed(String id) {
+        handleNodeClicked(id);
+    }
+
+    @Override
     public void viewClosed(String viewName) {
     }
 
@@ -946,7 +949,7 @@ public class GrafoController implements ViewerListener {
             view.removeListener(MouseEvent.MOUSE_CLICKED, mouseClicked);
         }
 
-        private EventHandler<MouseEvent> mouseClicked = new EventHandler<MouseEvent>() {
+        private final EventHandler<MouseEvent> mouseClicked = new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
                 double x = event.getX();

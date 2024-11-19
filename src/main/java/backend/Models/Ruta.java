@@ -1,5 +1,7 @@
 package backend.Models;
 
+import backend.Utils.IDGenerator;
+
 import java.util.Objects;
 
 public class Ruta {
@@ -12,7 +14,7 @@ public class Ruta {
     private int transbordos;
 
     public Ruta(Parada origen, Parada destino, int tiempo, int distancia, double costo, int transbordos) {
-        this.id = java.util.UUID.randomUUID().toString();
+        this.id = IDGenerator.generateId(8);
         this.origen = origen;
         this.destino = destino;
         this.tiempo = tiempo;
