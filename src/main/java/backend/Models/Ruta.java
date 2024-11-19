@@ -1,5 +1,7 @@
 package backend.Models;
 
+import java.util.Objects;
+
 public class Ruta {
     private final String id;
     private Parada origen;
@@ -73,8 +75,9 @@ public class Ruta {
 
     @Override
     public String toString() {
-        return "Origen: " + origen.getNombre() +
-                "Destino: " + destino.getNombre() +
+        return "ID: " + id +
+                " Origen: " + origen.getNombre() +
+                " Destino: " + destino.getNombre() +
                 ", Tiempo: " + tiempo + "min" +
                 ", Distancia: " + distancia + "m" +
                 ", Costo: $" + costo +
@@ -91,6 +94,6 @@ public class Ruta {
 
     @Override
     public int hashCode() {
-        return id.hashCode();
+        return Objects.hash(this.id);
     }
 }

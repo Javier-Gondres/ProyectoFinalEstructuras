@@ -2,12 +2,11 @@ package frontend.Controllers;
 
 import backend.Models.Excepciones.ParadaInexistenteException;
 import backend.Models.Excepciones.RutaDuplicadaException;
-import backend.Models.GrafoTransporte;
+import backend.Models.Interfaces.Grafo;
 import backend.Models.Parada;
 import backend.Models.Ruta;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Label;
 import javafx.stage.Stage;
@@ -34,7 +33,7 @@ public class CreateRutaDialogController {
     private Parada origen;
     private Parada destino;
 
-    private GrafoTransporte grafoTransporte;
+    private Grafo grafoTransporte;
 
     private Stage dialogStage;
     private boolean isConfirmed = false;
@@ -70,7 +69,7 @@ public class CreateRutaDialogController {
     /**
      * Establece el grafo de transporte.
      */
-    public void setGrafoTransporte(GrafoTransporte grafoTransporte) {
+    public void setGrafoTransporte(Grafo grafoTransporte) {
         this.grafoTransporte = grafoTransporte;
     }
 
@@ -100,7 +99,6 @@ public class CreateRutaDialogController {
             int transbordos = Integer.parseInt(transbordosField.getText().trim());
 
             ruta = new Ruta(origen, destino, tiempo, distancia, costo, transbordos);
-
             try {
                 grafoTransporte.agregarRuta(ruta);
                 isConfirmed = true;

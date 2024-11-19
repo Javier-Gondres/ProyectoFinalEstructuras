@@ -128,3 +128,9 @@
     -fx-background-color: #2980b9; /* Color de fondo activo */
     -fx-text-fill: white; /* Color de texto activo */
 }
+
+.active-button-trash {
+    -fx-background-color: #ffabb2; /* Color de fondo activo */
+    -fx-text-fill: white; /* Color de texto activo */
+}
+

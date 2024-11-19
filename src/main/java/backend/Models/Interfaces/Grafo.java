@@ -20,7 +20,7 @@ public interface Grafo {
     void agregarRuta(Ruta ruta) throws ParadaInexistenteException, RutaDuplicadaException;
 
     void modificarRuta(Ruta ruta, int nuevoTiempo, int nuevaDistancia, double nuevoCosto, int nuevosTransbordos)
-            throws RutaInexistenteException;
+            throws RutaInexistenteException, ParadaInexistenteException;
 
     void eliminarRuta(Parada origen, Parada destino)
             throws ParadaInexistenteException, RutaInexistenteException;

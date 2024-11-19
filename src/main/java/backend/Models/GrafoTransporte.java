@@ -82,20 +82,17 @@ public class GrafoTransporte implements Grafo {
             throw new ParadaInexistenteException("Error: La parada de destino '" + destino.getNombre() + "' no existe.");
         }
 
-        List<Ruta> rutasDesdeOrigen = listaAdyacencia.get(origen);
-
-        for (Ruta rutaBuscada : rutasDesdeOrigen) {
+        for (Ruta rutaBuscada : listaAdyacencia.get(origen)) {
             if (rutaBuscada.getDestino().equals(destino)) {
                 throw new RutaDuplicadaException("Error: Ya existe una ruta entre " + origen.getNombre() + " y " + destino.getNombre());
             }
         }
 
-        Ruta nuevaRuta = new Ruta(origen, destino, ruta.getTiempo(), ruta.getDistancia(), ruta.getCosto(), ruta.getTransbordos());
-        rutasDesdeOrigen.add(nuevaRuta);
+        listaAdyacencia.get(origen).add(ruta);
     }
 
     public void modificarRuta(Ruta ruta, int nuevoTiempo, int nuevaDistancia, double nuevoCosto, int nuevosTransbordos)
-            throws RutaInexistenteException {
+            throws RutaInexistenteException, ParadaInexistenteException {
 
         if (nuevoTiempo < 0 || nuevaDistancia < 0 || nuevoCosto < 0 || nuevosTransbordos < 0) {
             throw new IllegalArgumentException("Los valores no pueden ser negativos");
@@ -106,7 +103,21 @@ public class GrafoTransporte implements Grafo {
         }
 
         Parada origen = ruta.getOrigen();
-        if (!listaAdyacencia.containsKey(origen) || !listaAdyacencia.get(origen).contains(ruta)) {
+        if (!listaAdyacencia.containsKey(origen)) {
+            throw new ParadaInexistenteException("Error: La ruta especificada no existe en el grafo.");
+        }
+
+        boolean rutaExist = false;
+
+        for(Ruta rutaABuscar : listaAdyacencia.get(origen)){
+            System.out.println("ID DE LA RUTA BUSCADA: "+ rutaABuscar.getId());
+            if (rutaABuscar.equals(ruta)) {
+                rutaExist = true;
+                break;
+            }
+        }
+
+        if(!rutaExist){
             throw new RutaInexistenteException("Error: La ruta especificada no existe en el grafo.");
         }
 

@@ -2,30 +2,58 @@ package frontend.Controllers;
 
 import backend.Models.Excepciones.ParadaDuplicadaException;
 import backend.Models.Excepciones.ParadaInexistenteException;
+import backend.Models.Excepciones.RutaInexistenteException;
 import backend.Models.GrafoTransporte;
 import backend.Models.Interfaces.Grafo;
 import backend.Models.Parada;
+import backend.Models.Ruta;
 import javafx.animation.TranslateTransition;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import javafx.util.Duration;
+import javafx.util.StringConverter;
+import org.graphstream.graph.Edge;
 import org.graphstream.graph.Graph;
 import org.graphstream.graph.Node;
 import org.graphstream.graph.implementations.SingleGraph;
 import org.graphstream.ui.fx_viewer.FxViewPanel;
 import org.graphstream.ui.fx_viewer.FxViewer;
+import org.graphstream.ui.fx_viewer.util.FxMouseManager;
+import org.graphstream.ui.geom.Point2;
+import org.graphstream.ui.geom.Point3;
+import org.graphstream.ui.geom.Vector2;
+import org.graphstream.ui.graphicGraph.GraphicEdge;
+import org.graphstream.ui.graphicGraph.GraphicElement;
+import org.graphstream.ui.graphicGraph.GraphicGraph;
+import org.graphstream.ui.graphicGraph.stylesheet.Values;
+import org.graphstream.ui.view.View;
 import org.graphstream.ui.view.ViewerListener;
 import org.graphstream.ui.view.ViewerPipe;
+import org.graphstream.ui.view.camera.Camera;
+import org.graphstream.ui.view.util.GraphMetrics;
+import org.graphstream.ui.view.util.InteractiveElement;
 
+import java.io.IOException;
+import java.util.EnumSet;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.UnaryOperator;
+
 
 public class GrafoController implements ViewerListener {
+
 
     @FXML
     private StackPane graphContainer;
@@ -83,6 +111,20 @@ public class GrafoController implements ViewerListener {
     @FXML
     public TextField textFieldIdParada;
 
+    //TextFields del panel para actualizar ruta
+    @FXML
+    public TextField textFieldIdRuta;
+    @FXML
+    public Spinner<Integer> spinnerTiempo;
+    @FXML
+    public Spinner<Double> spinnerCosto;
+    @FXML
+    public Spinner<Integer> spinnerTranbordos;
+    @FXML
+    public Spinner<Integer> spinnerDistancia;
+    @FXML
+    public Button actualizarRutaButton;
+
     private boolean isSliderBarVisible = false;
 
     private Graph graph;
@@ -97,6 +139,7 @@ public class GrafoController implements ViewerListener {
     private Parada origenSeleccionado = null;
     private Parada destinoSeleccionado = null;
     private Parada paradaSeleccionada = null;
+    private Ruta rutaSeleccionada = null;
 
     private Mode currentMode = Mode.ADD;
     private final String CHOICE_CREAR_PARADA = "Crear Parada";
@@ -127,24 +170,27 @@ public class GrafoController implements ViewerListener {
 
         //Descativar paneles
         handleShowPane(panelActualizarParada);
+
+        initializeSpinners();
     }
 
-    private void disablePane(Pane pane) {
-        pane.setVisible(false);
-        pane.setManaged(false);
+
+    private void hideElement(javafx.scene.Node element) {
+        element.setVisible(false);
+        element.setManaged(false);
     }
 
-    private void enablePane(Pane pane) {
-        pane.setVisible(true);
-        pane.setManaged(true);
+    private void showElement(javafx.scene.Node element) {
+        element.setVisible(true);
+        element.setManaged(true);
     }
 
     private void handleShowPane(Pane pane) {
-        disablePane(panelCrearRuta);
-        disablePane(panelActualizarRuta);
-        disablePane(panelActualizarParada);
+        hideElement(panelCrearRuta);
+        hideElement(panelActualizarRuta);
+        hideElement(panelActualizarParada);
 
-        enablePane(pane);
+        showElement(pane);
     }
 
     /**
@@ -160,7 +206,9 @@ public class GrafoController implements ViewerListener {
         viewer = new FxViewer(graph, FxViewer.ThreadingModel.GRAPH_IN_ANOTHER_THREAD);
         viewer.enableAutoLayout();
         view = (FxViewPanel) viewer.addDefaultView(false);
+        viewer.getDefaultView().enableMouseOptions();
 
+        view.setMouseManager(new CustomMouseManager());
         graphContainer.getChildren().add(view);
     }
 
@@ -234,7 +282,7 @@ public class GrafoController implements ViewerListener {
                     arrow-shape: arrow;
                     arrow-size: 10px, 4px;
                 }
-                                
+                                      
                 /* Estilo para aristas específicas */
                 edge.importante {
                     fill-color: red;
@@ -282,17 +330,20 @@ public class GrafoController implements ViewerListener {
      */
     private void setupEventHandlers() {
         toggleAdd.setOnAction(event -> {
+            resetUI();
             setActiveToggle(toggleAdd);
             currentMode = Mode.ADD;
             addChoiceBox.setValue("Crear Parada");
         });
 
         toggleRemove.setOnAction(event -> {
+            resetUI();
             setActiveToggle(toggleRemove);
             currentMode = Mode.REMOVE;
         });
 
         toggleClickable.setOnAction(event -> {
+            resetUI();
             setActiveToggle(toggleClickable);
             currentMode = Mode.CLICKABLE;
         });
@@ -307,12 +358,9 @@ public class GrafoController implements ViewerListener {
 
         guardarParadaButton.setOnAction(event -> updateParada());
 
-        view.setOnMouseClicked(event -> {
-            if (event.getClickCount() != 1) {
-                return;
-            }
-            handleAddNodeOnMouseClicked();
-        });
+        crearRutaButton.setOnAction(event -> createRuta());
+
+        actualizarRutaButton.setOnAction(e -> updateRuta());
 
         addChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             resetUI();
@@ -326,22 +374,35 @@ public class GrafoController implements ViewerListener {
         });
     }
 
-    public void resetUI(){
-        if(destinoSeleccionado != null){
+    public void resetUI() {
+        resetParadas();
+        resetRuta();
+    }
+
+    public void resetParadas() {
+        if (destinoSeleccionado != null) {
             graph.getNode(destinoSeleccionado.getId()).removeAttribute("ui.class");
         }
 
-        if(origenSeleccionado != null){
+        if (origenSeleccionado != null) {
             graph.getNode(origenSeleccionado.getId()).removeAttribute("ui.class");
         }
 
-        if(paradaSeleccionada != null){
+        if (paradaSeleccionada != null) {
             graph.getNode(paradaSeleccionada.getId()).removeAttribute("ui.class");
         }
 
         paradaSeleccionada = null;
         origenSeleccionado = null;
         destinoSeleccionado = null;
+    }
+
+    public void resetRuta() {
+        if (rutaSeleccionada != null) {
+            graph.getEdge(rutaSeleccionada.getId()).removeAttribute("ui.class");
+        }
+
+        rutaSeleccionada = null;
     }
 
     public void handleAddNodeOnMouseClicked() {
@@ -387,14 +448,15 @@ public class GrafoController implements ViewerListener {
 
     private void setActiveToggle(Button activeButton) {
         toggleAdd.getStyleClass().remove("active-button");
-        toggleRemove.getStyleClass().remove("active-button");
+        toggleRemove.getStyleClass().remove("active-button-trash");
         toggleClickable.getStyleClass().remove("active-button");
 
-        if (!activeButton.getStyleClass().contains("active-button")) {
+        if (activeButton.equals(toggleRemove)) {
+            activeButton.getStyleClass().add("active-button-trash");
+        } else if (!activeButton.getStyleClass().contains("active-button")) {
             activeButton.getStyleClass().add("active-button");
         }
     }
-
 
     /**
      * Oculta el side bar desplazándolo fuera de la vista.
@@ -533,7 +595,9 @@ public class GrafoController implements ViewerListener {
             return;
         }
 
+        resetRuta();
         if (currentMode == Mode.ADD && addChoiceBox.getValue().equals(CHOICE_CREAR_RUTA)) {
+            handleShowPane(panelCrearRuta);
             if (origenSeleccionado == null) {
                 origenSeleccionado = parada;
                 clickedNode.setAttribute("ui.class", "origen");
@@ -559,6 +623,7 @@ public class GrafoController implements ViewerListener {
 
             crearRutaButton.setDisable(origenSeleccionado == null || destinoSeleccionado == null);
         } else {
+            handleShowPane(panelActualizarParada);
             if (paradaSeleccionada != null) {
                 graph.getNode(paradaSeleccionada.getId()).removeAttribute("ui.class");
             }
@@ -582,6 +647,10 @@ public class GrafoController implements ViewerListener {
             }
             if (paradaSeleccionada.getNombre().equals(nuevoNombre)) {
                 System.err.println("No hay nada que actualizar en la parada");
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Sin cambios");
+                alert.setContentText("No se han realizado cambios en la parada.");
+                alert.showAndWait();
                 return;
             }
 
@@ -597,6 +666,252 @@ public class GrafoController implements ViewerListener {
         }
     }
 
+    public void createRuta() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Screens/CreateRutaDialog/CreateRutaDialog.fxml"));
+
+            Parent root = loader.load();
+
+            CreateRutaDialogController controller = loader.getController();
+
+            Stage dialogStage = new Stage();
+            dialogStage.setTitle("Crear Ruta");
+            dialogStage.initModality(Modality.WINDOW_MODAL);
+
+            controller.setDialogStage(dialogStage);
+            controller.setOrigen(origenSeleccionado);
+            controller.setDestino(destinoSeleccionado);
+            controller.setGrafoTransporte(grafoTransporte);
+
+            Scene scene = new Scene(root);
+            dialogStage.setScene(scene);
+            dialogStage.showAndWait();
+
+            if (controller.isConfirmed()) {
+                Ruta nuevaRuta = controller.getRuta();
+                if (nuevaRuta != null) {
+                    Node origenNode = graph.getNode(nuevaRuta.getOrigen().getId());
+                    Node destinoNode = graph.getNode(nuevaRuta.getDestino().getId());
+                    System.out.println("ID DE LA RUTA 2" + nuevaRuta.getId());
+                    Edge edge = graph.addEdge(nuevaRuta.getId(), origenNode, destinoNode, true);
+                    edge.setAttribute("ui.interactive", true);
+                    edge.setAttribute("ruta", nuevaRuta);
+                    String labelText = String.format("Distancia: %d\nTiempo: %d\nCosto: %.2f\nTransbordos: %d",
+                            nuevaRuta.getDistancia(),
+                            nuevaRuta.getTiempo(),
+                            nuevaRuta.getCosto(),
+                            nuevaRuta.getTransbordos());
+                    edge.setAttribute("ui.label", labelText);
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void updateRuta() {
+        try {
+            int nuevaDistancia = spinnerDistancia.getValue();
+            int nuevosTransbordos = spinnerTranbordos.getValue();
+            int nuevoTiempo = spinnerTiempo.getValue();
+            double nuevoCosto = spinnerCosto.getValue();
+
+            if (rutaSeleccionada == null) {
+                System.err.println("La ruta seleccionada para modificar es NULL");
+                return;
+            }
+
+            boolean areThereChanges = false;
+
+            if (rutaSeleccionada.getDistancia() != nuevaDistancia) {
+                areThereChanges = true;
+            }
+            if (rutaSeleccionada.getTransbordos() != nuevosTransbordos) {
+                areThereChanges = true;
+            }
+            if (rutaSeleccionada.getTiempo() != nuevoTiempo) {
+                areThereChanges = true;
+            }
+            if (Double.compare(rutaSeleccionada.getCosto(), nuevoCosto) != 0) {
+                areThereChanges = true;
+            }
+
+            if (!areThereChanges) {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Sin cambios");
+                alert.setContentText("No se han realizado cambios en la ruta.");
+                alert.showAndWait();
+                return;
+            }
+
+            grafoTransporte.modificarRuta(rutaSeleccionada, nuevoTiempo, nuevaDistancia, nuevoCosto, nuevosTransbordos);
+
+            String labelText = String.format("Distancia: %d\nTiempo: %d\nCosto: %.2f\nTransbordos: %d",
+                    rutaSeleccionada.getDistancia(),
+                    rutaSeleccionada.getTiempo(),
+                    rutaSeleccionada.getCosto(),
+                    rutaSeleccionada.getTransbordos());
+
+            graph.getEdge(rutaSeleccionada.getId()).setAttribute("ui.label", labelText);
+
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Ruta actualizada");
+            alert.setContentText("La ruta se ha actualizado exitosamente.");
+            alert.showAndWait();
+        } catch (RutaInexistenteException | ParadaInexistenteException e) {
+            System.err.println("No se pudo actualizar la ruta: " + e);
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Algo salió mal");
+            alert.setContentText("No se pudo actualizar la ruta. Inténtelo mas tarde");
+            alert.showAndWait();
+        }
+    }
+
+    private void handleEdgeClicked(String edgeId) {
+        handleShowPane(panelActualizarRuta);
+        resetParadas();
+        Edge edge = graph.getEdge(edgeId);
+
+        if (edge == null) {
+            System.err.println("La arista es null");
+            return;
+        }
+
+        Ruta ruta = (Ruta) edge.getAttribute("ruta");
+        if (ruta == null) {
+            System.err.println("La ruta es null");
+            return;
+        }
+
+        if (rutaSeleccionada == null) {
+            rutaSeleccionada = ruta;
+            edge.setAttribute("ui.class", "importante");
+        } else if (rutaSeleccionada.getId().equals(edgeId)) {
+            rutaSeleccionada = null;
+            edge.removeAttribute("ui.class");
+        } else if (rutaSeleccionada != null) {
+            graph.getEdge(rutaSeleccionada.getId()).removeAttribute("ui.class");
+            rutaSeleccionada = ruta;
+            edge.setAttribute("ui.class", "importante");
+        }
+
+        if (rutaSeleccionada != null) {
+            spinnerDistancia.setDisable(false);
+            spinnerTiempo.setDisable(false);
+            spinnerCosto.setDisable(false);
+            spinnerTranbordos.setDisable(false);
+            actualizarRutaButton.setDisable(false);
+            textFieldIdRuta.setDisable(false);
+
+            textFieldIdRuta.setText(rutaSeleccionada.getId());
+            updateSpinners(rutaSeleccionada);
+        } else {
+            spinnerDistancia.setDisable(true);
+            spinnerTiempo.setDisable(true);
+            spinnerCosto.setDisable(true);
+            spinnerTranbordos.setDisable(true);
+            actualizarRutaButton.setDisable(true);
+            textFieldIdRuta.setDisable(false);
+            textFieldIdRuta.setText(null);
+            resetSpinners();
+        }
+    }
+
+    //Funciones para configurar los spinners
+    private void initializeSpinners() {
+        SpinnerValueFactory<Integer> distanciaValueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE, 0);
+        spinnerDistancia.setValueFactory(distanciaValueFactory);
+        configureIntegerSpinner(spinnerDistancia);
+
+        SpinnerValueFactory<Integer> tiempoValueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE, 0);
+        spinnerTiempo.setValueFactory(tiempoValueFactory);
+        configureIntegerSpinner(spinnerTiempo);
+
+        SpinnerValueFactory<Integer> transbordosValueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE, 0);
+        spinnerTranbordos.setValueFactory(transbordosValueFactory);
+        configureIntegerSpinner(spinnerTranbordos);
+
+        SpinnerValueFactory<Double> costoValueFactory = new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, 10000.0, 0.0, 0.1);
+        spinnerCosto.setValueFactory(costoValueFactory);
+        configureDoubleSpinner(spinnerCosto);
+    }
+
+    private void configureIntegerSpinner(Spinner<Integer> spinner) {
+        TextField editor = spinner.getEditor();
+        UnaryOperator<TextFormatter.Change> integerFilter = change -> {
+            String newText = change.getControlNewText();
+            if (newText.matches("[0-9]*")) {
+                return change;
+            }
+            return null;
+        };
+        editor.setTextFormatter(new TextFormatter<>(integerFilter));
+
+        spinner.getValueFactory().setConverter(new StringConverter<Integer>() {
+            @Override
+            public String toString(Integer value) {
+                return value != null ? value.toString() : "";
+            }
+
+            @Override
+            public Integer fromString(String text) {
+                if (text == null || text.isEmpty()) {
+                    return spinner.getValueFactory().getValue();
+                }
+                try {
+                    return Integer.parseInt(text);
+                } catch (NumberFormatException e) {
+                    return spinner.getValueFactory().getValue();
+                }
+            }
+        });
+    }
+
+    private void configureDoubleSpinner(Spinner<Double> spinner) {
+        TextField editor = spinner.getEditor();
+        UnaryOperator<TextFormatter.Change> doubleFilter = change -> {
+            String newText = change.getControlNewText();
+            if (newText.matches("[0-9]*\\.?[0-9]*")) {
+                return change;
+            }
+            return null;
+        };
+        editor.setTextFormatter(new TextFormatter<>(doubleFilter));
+
+        spinner.getValueFactory().setConverter(new StringConverter<Double>() {
+            @Override
+            public String toString(Double value) {
+                return value != null ? String.format("%.2f", value) : "";
+            }
+
+            @Override
+            public Double fromString(String text) {
+                if (text == null || text.isEmpty()) {
+                    return spinner.getValueFactory().getValue();
+                }
+                try {
+                    return Double.parseDouble(text);
+                } catch (NumberFormatException e) {
+                    return spinner.getValueFactory().getValue();
+                }
+            }
+        });
+    }
+
+    private void updateSpinners(Ruta rutaSeleccionada) {
+        spinnerDistancia.getValueFactory().setValue(rutaSeleccionada.getDistancia());
+        spinnerTiempo.getValueFactory().setValue(rutaSeleccionada.getTiempo());
+        spinnerTranbordos.getValueFactory().setValue(rutaSeleccionada.getTransbordos());
+        spinnerCosto.getValueFactory().setValue(rutaSeleccionada.getCosto());
+    }
+
+    private void resetSpinners() {
+        spinnerDistancia.getValueFactory().setValue(null);
+        spinnerTiempo.getValueFactory().setValue(null);
+        spinnerTranbordos.getValueFactory().setValue(null);
+        spinnerCosto.getValueFactory().setValue(null);
+    }
 
     @Override
     public void viewClosed(String viewName) {
@@ -613,4 +928,112 @@ public class GrafoController implements ViewerListener {
     @Override
     public void mouseLeft(String id) {
     }
+
+    private class CustomMouseManager extends FxMouseManager {
+        public CustomMouseManager() {
+            super(EnumSet.of(InteractiveElement.NODE, InteractiveElement.EDGE));
+        }
+
+        @Override
+        public void init(GraphicGraph graph, View view) {
+            super.init(graph, view);
+            view.addListener(MouseEvent.MOUSE_CLICKED, mouseClicked);
+        }
+
+        @Override
+        public void release() {
+            super.release();
+            view.removeListener(MouseEvent.MOUSE_CLICKED, mouseClicked);
+        }
+
+        private EventHandler<MouseEvent> mouseClicked = new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                double x = event.getX();
+                double y = event.getY();
+
+                GraphicElement graphicElement = view.findGraphicElementAt(getManagedTypes(), x, y);
+
+                if (graphicElement != null) {
+                    System.out.println("ID: " + graphicElement.getId());
+                }
+
+                Edge element = null;
+
+                if (graphicElement == null && getManagedTypes().contains(InteractiveElement.EDGE)) {
+                    element = findEdgeAt(event.getX(), event.getY());
+                } else {
+                    if (graphicElement != null) {
+                        element = graph.getEdge(graphicElement.getId());
+                    }
+                }
+
+                if (element != null && element.getId() != null) {
+                    if (element instanceof GraphicEdge) {
+                        handleEdgeClicked(element.getId());
+                    }
+                } else {
+                    handleAddNodeOnMouseClicked();
+                }
+            }
+        };
+
+        private Edge findEdgeAt(double x, double y) {
+            Camera cam = view.getCamera();
+            GraphMetrics metrics = cam.getMetrics();
+
+            double xT = x + metrics.viewport[0];
+            double yT = y + metrics.viewport[0];
+
+            Edge edgeFound = null;
+
+            if (getManagedTypes().contains(InteractiveElement.EDGE)) {
+                Optional<Edge> edge = graph.edges().filter(e -> edgeContains((GraphicEdge) e, xT, yT)).findFirst();
+                if (edge.isPresent()) {
+                    if (cam.isVisible((GraphicElement) edge.get())) {
+                        edgeFound = edge.get();
+                    }
+                }
+            }
+
+            return edgeFound;
+        }
+
+        private boolean edgeContains(GraphicEdge edge, double x, double y) {
+            Camera cam = view.getCamera();
+            GraphMetrics metrics = cam.getMetrics();
+
+            Values size = edge.getStyle().getSize();
+            double deviation = metrics.lengthToPx(size, 0);
+
+            Point3 edgeNode0 = cam.transformGuToPx(edge.from.x, edge.from.y, 0);
+            Point3 edgeNode1 = cam.transformGuToPx(edge.to.x, edge.to.y, 0);
+
+
+            //check of point x,y is between nodes of the edge
+            boolean edgeContains = false;
+            //check x,y range
+            if (x > Math.min(edgeNode0.x, edgeNode1.x) - deviation
+                    && x < Math.max(edgeNode0.x, edgeNode1.x) + deviation
+                    && y > Math.min(edgeNode0.y, edgeNode1.y) - deviation
+                    && y < Math.max(edgeNode0.y, edgeNode1.y) + deviation) {
+
+                //check deviation from edge
+
+                Vector2 vectorNode0To1 = new Vector2(edgeNode0, edgeNode1);
+                Point2 point = new Point2(x, y);
+                Vector2 vectorNode0ToPoint = new Vector2(edgeNode0, point);
+                //cross product of vectorNode0ToPoint and vectorNode0to1
+                double crossProduct = vectorNode0ToPoint.x() * vectorNode0To1.y() - vectorNode0To1.x() * vectorNode0ToPoint.y();
+                //distance of point to the line extending the edge
+                double d = Math.abs(crossProduct) / vectorNode0To1.length();
+                if (d <= deviation) {
+                    edgeContains = true;
+                }
+            }
+
+            return edgeContains;
+        }
+    }
 }
+
