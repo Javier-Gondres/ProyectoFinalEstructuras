@@ -1,15 +1,14 @@
 package frontend.Controllers;
 
 import backend.Models.Excepciones.ParadaDuplicadaException;
+import backend.Models.Excepciones.ParadaInexistenteException;
 import backend.Models.GrafoTransporte;
 import backend.Models.Interfaces.Grafo;
 import backend.Models.Parada;
 import javafx.animation.TranslateTransition;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.TextInputDialog;
+import javafx.scene.control.*;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
@@ -41,10 +40,10 @@ public class GrafoController implements ViewerListener {
     private Button toggleMenuButton;
 
     @FXML
-    private Button guardarRutaButton;
+    private Button guardarParadaButton;
 
     @FXML
-    private Button crearRutaButton;
+    private Button crearGrafoButton;
 
     @FXML
     private Button cargarRutaButton;
@@ -67,6 +66,23 @@ public class GrafoController implements ViewerListener {
     @FXML
     private ChoiceBox<String> addChoiceBox;
 
+    @FXML
+    public Pane panelActualizarParada;
+
+    @FXML
+    public Pane panelCrearRuta;
+
+    @FXML
+    public Pane panelActualizarRuta;
+
+    @FXML
+    public Button crearRutaButton;
+
+    @FXML
+    public TextField textFieldNombreParada;
+    @FXML
+    public TextField textFieldIdParada;
+
     private boolean isSliderBarVisible = false;
 
     private Graph graph;
@@ -80,8 +96,12 @@ public class GrafoController implements ViewerListener {
 
     private Parada origenSeleccionado = null;
     private Parada destinoSeleccionado = null;
+    private Parada paradaSeleccionada = null;
 
     private Mode currentMode = Mode.ADD;
+    private final String CHOICE_CREAR_PARADA = "Crear Parada";
+    private final String CHOICE_CREAR_RUTA = "Crear Ruta";
+
 
     /**
      * Método de inicialización que se ejecuta después de cargar el FXML.
@@ -101,9 +121,30 @@ public class GrafoController implements ViewerListener {
         showSideBar();
         sliderBar.setTranslateX(-sliderBar.getPrefWidth());
 
-        addChoiceBox.getItems().addAll("Crear Parada", "Crear Ruta");
-        addChoiceBox.setValue("Crear Parada");
+        addChoiceBox.getItems().addAll(CHOICE_CREAR_PARADA, CHOICE_CREAR_RUTA);
+        addChoiceBox.setValue(CHOICE_CREAR_PARADA);
         setActiveToggle(toggleAdd);
+
+        //Descativar paneles
+        handleShowPane(panelActualizarParada);
+    }
+
+    private void disablePane(Pane pane) {
+        pane.setVisible(false);
+        pane.setManaged(false);
+    }
+
+    private void enablePane(Pane pane) {
+        pane.setVisible(true);
+        pane.setManaged(true);
+    }
+
+    private void handleShowPane(Pane pane) {
+        disablePane(panelCrearRuta);
+        disablePane(panelActualizarRuta);
+        disablePane(panelActualizarParada);
+
+        enablePane(pane);
     }
 
     /**
@@ -132,13 +173,11 @@ public class GrafoController implements ViewerListener {
                     stroke-mode: plain;
                     stroke-color: black;
                     stroke-width: 1px;
-                    fill-color: #3498db;
+                    fill-color: #ddd622;
                     text-alignment: center;
                     text-size: 12px; /* Reducido de 14px */
-                    text-color: white;
+                    text-color: #00171f;
                     text-style: bold;
-                    text-background-mode: rounded-box;
-                    text-background-color: rgba(0, 0, 0, 0.5);
                     text-padding: 2px;
                     text-offset: 0px, 30px;  /* Ajustado para mover la etiqueta hacia abajo */
                     shadow-mode: plain;
@@ -146,6 +185,7 @@ public class GrafoController implements ViewerListener {
                     shadow-width: 0px;
                     shadow-offset: 3px, -3px;
                 }
+                                
                 /* Estilos específicos por clase */
                 node.importante {
                     fill-color: rgb(231, 76, 60);
@@ -160,26 +200,33 @@ public class GrafoController implements ViewerListener {
                     fill-color: rgb(241, 196, 15);
                     shape: diamond;
                     text-color: black;
-                    text-size: 12px; /* Asegurado que no sea demasiado grande */
-                    text-offset: 0px, 35px; /* Ajustado para evitar cortes */
+                    text-size: 12px;
+                    text-offset: 0px, 35px;
                 }
                                 
                 node.destacado {
-                    fill-color: rgb(46, 204, 113);
+                    fill-color: #2980b9;
                     size: 40px; /* Aumentado de 30px */
+                    text-color: #2980b9;
                     text-offset: 0px, 35px;  /* Ajustado para nodos más grandes */
                     stroke-mode: dots;
-                    stroke-width: 2px;
+                    stroke-width: 1px;
                 }
                                 
-                node.inactivo {
-                    fill-color: #95a5a6;
-                    size: 25px; /* Aumentado de 20px */
-                    text-color: #666;
-                    text-style: italic;
-                    text-offset: 0px, 25px;  /* Ajustado para nodos más pequeños */
+                node.origen {
+                    fill-color: #00171f;
+                    text-color: #00171f;
+                    size: 40px;
+                    text-offset: 0px, 35px;  /* Ajustado para nodos más grandes */
                 }
-                                
+                             
+                node.destino {
+                    fill-color: #adebff;
+                    text-color: #adebff;
+                    size: 40px;
+                    text-offset: 0px, 35px;  /* Ajustado para nodos más grandes */
+                }
+                                        
                 /* Estilo para las aristas */
                 edge {
                     fill-color: #666;
@@ -252,34 +299,70 @@ public class GrafoController implements ViewerListener {
 
         toggleMenuButton.setOnAction(event -> toggleSliderBar());
 
-        guardarRutaButton.setOnAction(event -> guardarRuta());
-        crearRutaButton.setOnAction(event -> crearRuta());
+        guardarParadaButton.setOnAction(event -> guardarParada());
+        crearGrafoButton.setOnAction(event -> crearRuta());
         cargarRutaButton.setOnAction(event -> cargarRuta());
         eliminarRutaButton.setOnAction(event -> eliminarRuta());
         salirButton.setOnAction(event -> salir());
 
+        guardarParadaButton.setOnAction(event -> updateParada());
+
         view.setOnMouseClicked(event -> {
-            if (event.getClickCount() == 1) {
-                double x = event.getX();
-                double y = event.getY();
+            if (event.getClickCount() != 1) {
+                return;
+            }
+            handleAddNodeOnMouseClicked();
+        });
 
-                TextInputDialog dialog = new TextInputDialog();
-                dialog.setTitle("Agregar Nueva Parada");
-                dialog.setHeaderText("Ingrese el nombre de la nueva parada");
-                dialog.setContentText("Nombre:");
+        addChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            resetUI();
 
-                Optional<String> result = dialog.showAndWait();
-                result.ifPresent(nombre -> {
-                    if (!nombre.trim().isEmpty()) {
-                        addNode(x, y, nombre.trim());
-                    } else {
-                        Alert alert = new Alert(Alert.AlertType.WARNING);
-                        alert.setTitle("Entrada Inválida");
-                        alert.setHeaderText(null);
-                        alert.setContentText("El nombre de la parada no puede estar vacío.");
-                        alert.showAndWait();
-                    }
-                });
+            if (newValue.equals(CHOICE_CREAR_RUTA)) {
+                handleShowPane(panelCrearRuta);
+                crearRutaButton.setDisable(true);
+            } else if (newValue.equals(CHOICE_CREAR_PARADA)) {
+                handleShowPane(panelActualizarParada);
+            }
+        });
+    }
+
+    public void resetUI(){
+        if(destinoSeleccionado != null){
+            graph.getNode(destinoSeleccionado.getId()).removeAttribute("ui.class");
+        }
+
+        if(origenSeleccionado != null){
+            graph.getNode(origenSeleccionado.getId()).removeAttribute("ui.class");
+        }
+
+        if(paradaSeleccionada != null){
+            graph.getNode(paradaSeleccionada.getId()).removeAttribute("ui.class");
+        }
+
+        paradaSeleccionada = null;
+        origenSeleccionado = null;
+        destinoSeleccionado = null;
+    }
+
+    public void handleAddNodeOnMouseClicked() {
+        if (currentMode != Mode.ADD || !addChoiceBox.getValue().equals(CHOICE_CREAR_PARADA))
+            return;
+
+        TextInputDialog dialog = new TextInputDialog();
+        dialog.setTitle("Agregar Nueva Parada");
+        dialog.setHeaderText("Ingrese el nombre de la nueva parada");
+        dialog.setContentText("Nombre:");
+
+        Optional<String> result = dialog.showAndWait();
+        result.ifPresent(nombre -> {
+            if (!nombre.trim().isEmpty()) {
+                addNode(nombre.trim());
+            } else {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Entrada Inválida");
+                alert.setHeaderText(null);
+                alert.setContentText("El nombre de la parada no puede estar vacío.");
+                alert.showAndWait();
             }
         });
     }
@@ -335,7 +418,7 @@ public class GrafoController implements ViewerListener {
      * Guarda la ruta actual del grafo.
      * Implementa la lógica según tus necesidades (por ejemplo, guardar en un archivo).
      */
-    private void guardarRuta() {
+    private void guardarParada() {
         // TODO: Implementar la lógica para guardar la ruta
         System.out.println("Guardar ruta");
     }
@@ -412,14 +495,8 @@ public class GrafoController implements ViewerListener {
         System.exit(0);
     }
 
-    /**
-     * Agrega un nuevo nodo en la posición especificada con el nombre dado.
-     *
-     * @param x      La coordenada x del clic
-     * @param y      La coordenada y del clic
-     * @param nombre El nombre de la parada
-     */
-    private void addNode(double x, double y, String nombre) {
+
+    private void addNode(String nombre) {
         Parada nuevaParada = new Parada(nombre);
 
         try {
@@ -434,17 +511,14 @@ public class GrafoController implements ViewerListener {
             return;
         }
 
-        // Asegurarse de que el ID del nodo sea único
         String nodeId = nuevaParada.getId();
         if (graph.getNode(nodeId) != null) {
             nodeId = nodeId + "_" + (graph.getNodeCount() + 1);
         }
 
-        // Agregar el nodo al grafo de GraphStream
         Node nodo = graph.addNode(nodeId);
         nodo.setAttribute("parada", nuevaParada);
         nodo.setAttribute("ui.label", nuevaParada.getNombre());
-        nodo.setAttribute("ui.class", "destacado"); // Cambia a la clase que desees
     }
 
     @Override
@@ -458,24 +532,85 @@ public class GrafoController implements ViewerListener {
         if (parada == null) {
             return;
         }
-        javafx.application.Platform.runLater(() -> {
-            Alert infoAlert = new Alert(Alert.AlertType.INFORMATION);
-            infoAlert.setTitle("Información de la Parada");
-            infoAlert.setHeaderText(parada.getNombre());
-            infoAlert.setContentText("ID: " + parada.getId());
-            infoAlert.showAndWait();
-        });
+
+        if (currentMode == Mode.ADD && addChoiceBox.getValue().equals(CHOICE_CREAR_RUTA)) {
+            if (origenSeleccionado == null) {
+                origenSeleccionado = parada;
+                clickedNode.setAttribute("ui.class", "origen");
+            } else if (origenSeleccionado.getId().equals(parada.getId())) {
+                if (destinoSeleccionado == null) {
+                    clickedNode.removeAttribute("ui.class");
+                    origenSeleccionado = null;
+                } else {
+                    origenSeleccionado = destinoSeleccionado;
+                    graph.getNode(origenSeleccionado.getId()).setAttribute("ui.class", "origen");
+
+                    destinoSeleccionado = null;
+                    clickedNode.removeAttribute("ui.class");
+                }
+            } else if (destinoSeleccionado == null) {
+                destinoSeleccionado = parada;
+                clickedNode.setAttribute("ui.class", "destino");
+            } else {
+                graph.getNode(destinoSeleccionado.getId()).removeAttribute("ui.class");
+                destinoSeleccionado = parada;
+                clickedNode.setAttribute("ui.class", "destino");
+            }
+
+            crearRutaButton.setDisable(origenSeleccionado == null || destinoSeleccionado == null);
+        } else {
+            if (paradaSeleccionada != null) {
+                graph.getNode(paradaSeleccionada.getId()).removeAttribute("ui.class");
+            }
+
+            clickedNode.setAttribute("ui.class", "destacado");
+            paradaSeleccionada = parada;
+            textFieldIdParada.setText(parada.getId());
+            textFieldNombreParada.setText(parada.getNombre());
+
+            textFieldNombreParada.setDisable(false);
+        }
+    }
+
+    public void updateParada() {
+        try {
+            String nuevoNombre = textFieldNombreParada.getText();
+
+            if (paradaSeleccionada == null) {
+                System.err.println("La parada seleccionada para modificar es NULL");
+                return;
+            }
+            if (paradaSeleccionada.getNombre().equals(nuevoNombre)) {
+                System.err.println("No hay nada que actualizar en la parada");
+                return;
+            }
+
+            grafoTransporte.modificarParada(paradaSeleccionada, nuevoNombre);
+            graph.getNode(paradaSeleccionada.getId()).setAttribute("ui.label", nuevoNombre);
+
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Parada actualizada");
+            alert.setContentText("La parada se ha actualizado exitosamente.");
+            alert.showAndWait();
+        } catch (ParadaInexistenteException | ParadaDuplicadaException e) {
+            System.err.println("No se pudo actualizar la parada: " + e);
+        }
+    }
+
+
+    @Override
+    public void viewClosed(String viewName) {
     }
 
     @Override
-    public void viewClosed(String viewName) {}
+    public void buttonReleased(String id) {
+    }
 
     @Override
-    public void buttonReleased(String id) {}
+    public void mouseOver(String id) {
+    }
 
     @Override
-    public void mouseOver(String id) {}
-
-    @Override
-    public void mouseLeft(String id) {}
+    public void mouseLeft(String id) {
+    }
 }
