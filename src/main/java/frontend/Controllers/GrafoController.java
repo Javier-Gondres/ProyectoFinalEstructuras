@@ -76,9 +76,6 @@ public class GrafoController implements ViewerListener {
     private Button cargarRutaButton;
 
     @FXML
-    private Button eliminarRutaButton;
-
-    @FXML
     private Button salirButton;
 
     @FXML
@@ -125,6 +122,8 @@ public class GrafoController implements ViewerListener {
     public Spinner<Integer> spinnerDistancia;
     @FXML
     public Button actualizarRutaButton;
+    @FXML
+    private Button eliminarRutaButton;
 
     private boolean isSliderBarVisible = false;
 
@@ -354,7 +353,6 @@ public class GrafoController implements ViewerListener {
         guardarParadaButton.setOnAction(event -> guardarParada());
         crearGrafoButton.setOnAction(event -> crearRuta());
         cargarRutaButton.setOnAction(event -> cargarRuta());
-        eliminarRutaButton.setOnAction(event -> eliminarRuta());
         salirButton.setOnAction(event -> salir());
 
         guardarParadaButton.setOnAction(event -> updateParada());
@@ -363,6 +361,7 @@ public class GrafoController implements ViewerListener {
         crearRutaButton.setOnAction(event -> createRuta());
 
         actualizarRutaButton.setOnAction(e -> updateRuta());
+        eliminarRutaButton.setOnAction(event -> removeRuta());
 
         addChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             resetUI();
@@ -384,21 +383,21 @@ public class GrafoController implements ViewerListener {
     public void resetParadas() {
         if (destinoSeleccionado != null) {
             Node nodo = graph.getNode(destinoSeleccionado.getId());
-            if(nodo != null){
+            if (nodo != null) {
                 nodo.removeAttribute("ui.class");
             }
         }
 
         if (origenSeleccionado != null) {
             Node nodo = graph.getNode(origenSeleccionado.getId());
-            if(nodo != null){
+            if (nodo != null) {
                 nodo.removeAttribute("ui.class");
             }
         }
 
         if (paradaSeleccionada != null) {
             Node nodo = graph.getNode(paradaSeleccionada.getId());
-            if(nodo != null){
+            if (nodo != null) {
                 nodo.removeAttribute("ui.class");
             }
         }
@@ -410,9 +409,11 @@ public class GrafoController implements ViewerListener {
 
     public void resetRuta() {
         if (rutaSeleccionada != null) {
-            graph.getEdge(rutaSeleccionada.getId()).removeAttribute("ui.class");
+            Edge edge = graph.getEdge(rutaSeleccionada.getId());
+            if (edge != null) {
+                edge.removeAttribute("ui.class");
+            }
         }
-
         rutaSeleccionada = null;
     }
 
@@ -595,8 +596,6 @@ public class GrafoController implements ViewerListener {
     }
 
     public void handleNodeClicked(String nodoId) {
-        System.out.println(nodoId);
-        System.out.println(currentMode);
         Node clickedNode = graph.getNode(nodoId);
         if (clickedNode == null) {
             return;
@@ -646,7 +645,7 @@ public class GrafoController implements ViewerListener {
                 clickedNode.setAttribute("ui.class", "importante");
             }
 
-            if(paradaSeleccionada != null){
+            if (paradaSeleccionada != null) {
                 handleShowPane(panelActualizarParada);
                 paradaSeleccionada = parada;
                 textFieldIdParada.setText(parada.getId());
@@ -657,8 +656,7 @@ public class GrafoController implements ViewerListener {
                 hideElement(guardarParadaButton);
 
                 eliminarParadaButton.setDisable(false);
-            }
-            else{
+            } else {
                 eliminarParadaButton.setDisable(true);
             }
 
@@ -678,7 +676,7 @@ public class GrafoController implements ViewerListener {
     }
 
     public void removeParada() {
-        if(paradaSeleccionada == null){
+        if (paradaSeleccionada == null) {
             System.err.println("No se pudo eliminar la parada porque es null");
             Alert errorAlert = new Alert(Alert.AlertType.ERROR);
             errorAlert.setTitle("Error");
@@ -692,7 +690,6 @@ public class GrafoController implements ViewerListener {
         alert.setTitle("Confirmación de eliminación");
         alert.setHeaderText("");
         alert.setContentText("¿Está seguro que desea eliminar la parada '" + paradaSeleccionada.getNombre() + "' y todas sus rutas asociadas?");
-        System.out.println("Se supone que abrio");
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
@@ -720,7 +717,6 @@ public class GrafoController implements ViewerListener {
             }
         }
     }
-
 
     public void updateParada() {
         try {
@@ -777,7 +773,7 @@ public class GrafoController implements ViewerListener {
                 if (nuevaRuta != null) {
                     Node origenNode = graph.getNode(nuevaRuta.getOrigen().getId());
                     Node destinoNode = graph.getNode(nuevaRuta.getDestino().getId());
-                    System.out.println("ID DE LA RUTA 2" + nuevaRuta.getId());
+
                     Edge edge = graph.addEdge(nuevaRuta.getId(), origenNode, destinoNode, true);
                     edge.setAttribute("ui.interactive", true);
                     edge.setAttribute("ruta", nuevaRuta);
@@ -854,9 +850,52 @@ public class GrafoController implements ViewerListener {
         }
     }
 
+    public void removeRuta() {
+        if (rutaSeleccionada == null) {
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Error");
+            errorAlert.setHeaderText(null);
+            errorAlert.setContentText("No se pudo eliminar la ruta. Inténtelo más tarde.");
+            errorAlert.showAndWait();
+            return;
+        }
+
+        Edge edge = graph.getEdge(rutaSeleccionada.getId());
+        if (edge == null) {
+            return;
+        }
+
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Confirmación de eliminación");
+        alert.setHeaderText(null);
+        alert.setContentText("¿Está seguro que desea eliminar la ruta seleccionada?");
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            try {
+                grafoTransporte.eliminarRuta(rutaSeleccionada.getOrigen(), rutaSeleccionada.getDestino());
+                graph.removeEdge(edge);
+                resetRuta();
+                Alert infoAlert = new Alert(Alert.AlertType.INFORMATION);
+                infoAlert.setTitle("Ruta eliminada");
+                infoAlert.setHeaderText(null);
+                infoAlert.setContentText("La ruta ha sido eliminada.");
+                infoAlert.showAndWait();
+            } catch (RutaInexistenteException | ParadaInexistenteException e) {
+                System.err.println("No se pudo eliminar la ruta: " + e);
+                Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                errorAlert.setTitle("Error");
+                errorAlert.setHeaderText(null);
+                errorAlert.setContentText("No se pudo eliminar la ruta. Inténtelo más tarde.");
+                errorAlert.showAndWait();
+            }
+        }
+    }
+
     private void handleEdgeClicked(String edgeId) {
         handleShowPane(panelActualizarRuta);
         resetParadas();
+
         Edge edge = graph.getEdge(edgeId);
 
         if (edge == null) {
@@ -883,12 +922,25 @@ public class GrafoController implements ViewerListener {
         }
 
         if (rutaSeleccionada != null) {
+            if (currentMode == Mode.REMOVE) {
+                spinnerDistancia.setDisable(true);
+                spinnerTiempo.setDisable(true);
+                spinnerCosto.setDisable(true);
+                spinnerTranbordos.setDisable(true);
+                actualizarRutaButton.setDisable(true);
+                textFieldIdRuta.setText(rutaSeleccionada.getId());
+                updateSpinners(rutaSeleccionada);
+                showElement(eliminarRutaButton);
+                eliminarRutaButton.setDisable(false);
+                hideElement(actualizarRutaButton);
+                return;
+            }
             spinnerDistancia.setDisable(false);
             spinnerTiempo.setDisable(false);
             spinnerCosto.setDisable(false);
             spinnerTranbordos.setDisable(false);
             actualizarRutaButton.setDisable(false);
-
+            showElement(actualizarRutaButton);
             textFieldIdRuta.setText(rutaSeleccionada.getId());
             updateSpinners(rutaSeleccionada);
         } else {
@@ -899,6 +951,11 @@ public class GrafoController implements ViewerListener {
             actualizarRutaButton.setDisable(true);
             textFieldIdRuta.setText(null);
             resetSpinners();
+            if (currentMode == Mode.REMOVE) {
+                eliminarRutaButton.setDisable(true);
+            } else {
+                hideElement(eliminarRutaButton);
+            }
         }
     }
 
