@@ -1,8 +1,10 @@
+import com.google.cloud.firestore.Firestore;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
+import main.Database.FirebaseInitializer;
 
 public class Main extends Application {
 
@@ -16,7 +18,7 @@ public class Main extends Application {
             primaryStage.setTitle("Gestión de Grafo de Transporte");
             primaryStage.setScene(scene);
             primaryStage.show();
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
