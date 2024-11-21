@@ -10,7 +10,7 @@ import backend.Utils.GrafoUtils;
 
 import java.util.*;
 
-public class FloydWarshall extends AlgoritmoGrafo{
+public class FloydWarshall extends AlgoritmoGrafo {
 
     private GrafoTransporte grafo;
     private double[][] distancias;
@@ -90,6 +90,7 @@ public class FloydWarshall extends AlgoritmoGrafo{
         int destinoIdx = paradaIndices.get(destino);
 
         List<Parada> camino = reconstruirCamino(origenIdx, destinoIdx);
+        List<Ruta> rutas = new ArrayList<>();
 
         int distanciaTotal = 0;
         double costoTotal = 0.0;
@@ -106,12 +107,13 @@ public class FloydWarshall extends AlgoritmoGrafo{
                 costoTotal += ruta.getCosto();
                 transbordosTotal += ruta.getTransbordos();
                 tiempoTotal += ruta.getTiempo();
+                rutas.add(ruta);
             } else {
                 throw new RutaInexistenteException("No existe ruta directa entre " + actual.getNombre() + " y " + siguiente.getNombre());
             }
         }
 
-        return new ResultadoRuta(camino, distanciaTotal, costoTotal, transbordosTotal, tiempoTotal);
+        return new ResultadoRuta(camino, rutas, distanciaTotal, costoTotal, transbordosTotal, tiempoTotal);
     }
 
     public double obtenerPesoDistanciasParadas(Parada origen, Parada destino) throws ParadaInexistenteException {

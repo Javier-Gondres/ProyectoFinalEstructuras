@@ -8,7 +8,7 @@ import backend.Utils.GrafoUtils;
 
 import java.util.*;
 
-public class Dijkstra extends AlgoritmoGrafo{
+public class Dijkstra extends AlgoritmoGrafo {
 
     private Map<Parada, List<Ruta>> listaAdyacencia;
     private double pesoTiempo;
@@ -82,10 +82,11 @@ public class Dijkstra extends AlgoritmoGrafo{
         List<ParadaWrapper> rutaWrappers = ejecutarDijkstra(origen, destino);
 
         if (rutaWrappers == null) {
-            return new ResultadoRuta(Collections.emptyList(), 0, 0.0, 0, 0);
+            return new ResultadoRuta(Collections.emptyList(), Collections.emptyList(), 0, 0.0, 0, 0);
         }
 
         List<Parada> paradas = new ArrayList<>();
+        List<Ruta> rutas = new ArrayList<>();
         int distanciaTotal = 0;
         double costoTotal = 0;
         int transbordosTotal = 0;
@@ -102,10 +103,11 @@ public class Dijkstra extends AlgoritmoGrafo{
                     costoTotal += ruta.getCosto();
                     transbordosTotal += ruta.getTransbordos();
                     tiempoTotal += ruta.getTiempo();
+                    rutas.add(ruta);
                 }
             }
         }
 
-        return new ResultadoRuta(paradas, distanciaTotal, costoTotal, transbordosTotal, tiempoTotal);
+        return new ResultadoRuta(paradas, rutas, distanciaTotal, costoTotal, transbordosTotal, tiempoTotal);
     }
 }

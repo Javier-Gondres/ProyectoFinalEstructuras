@@ -1,6 +1,6 @@
 package frontend.Controllers;
 
 public enum Mode {
-    REMOVE, ADD, CLICKABLE
+    REMOVE, ADD, CLICKABLE, SEARCH
 
 }

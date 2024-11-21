@@ -5,6 +5,7 @@ import backend.Models.Excepciones.ParadaInexistenteException;
 import backend.Models.Excepciones.RutaDuplicadaException;
 import backend.Models.Excepciones.RutaInexistenteException;
 import backend.Models.Parada;
+import backend.Models.ResultadoRuta;
 import backend.Models.Ruta;
 
 import java.util.List;
@@ -34,4 +35,6 @@ public interface Grafo {
     Ruta buscarRuta(Parada origen, Parada destino) throws ParadaInexistenteException;
 
     void imprimirGrafo();
+
+    ResultadoRuta obtenerRutaEntreParadasConDijkstra(Parada origen, Parada destino, double pesoTiempo, double pesoDistancia, double pesoTransbordos, double pesoCosto) throws ParadaInexistenteException, IllegalArgumentException;
 }

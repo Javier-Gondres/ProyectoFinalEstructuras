@@ -35,7 +35,6 @@ import java.util.function.UnaryOperator;
 
 public class GrafoController implements ViewerListener {
 
-    // FXML Elements
     @FXML
     private StackPane graphContainer;
     @FXML
@@ -89,6 +88,28 @@ public class GrafoController implements ViewerListener {
     @FXML
     private Button eliminarRutaButton;
 
+    //Panel camino mas corto
+    @FXML
+    public Button toggleCaminoMasCorto;
+    @FXML
+    public Pane panelBuscarCaminoMasCorto;
+    @FXML
+    public Button buscarButton;
+    @FXML
+    public Button verInformacionButton;
+    @FXML
+    public TextField textFieldNombreOrigen;
+    @FXML
+    public TextField textFieldNombreDestino;
+    @FXML
+    public CheckBox checkBoxTiempo;
+    @FXML
+    public CheckBox checkBoxDistania;
+    @FXML
+    public CheckBox checkBoxCosto;
+    @FXML
+    public CheckBox checkBoxTransbordos;
+
     // Variables de Control
     private boolean isSliderBarVisible = false;
     private Graph graph;
@@ -104,6 +125,7 @@ public class GrafoController implements ViewerListener {
     private Mode currentMode = Mode.ADD;
     private final String CHOICE_CREAR_PARADA = "Crear Parada";
     private final String CHOICE_CREAR_RUTA = "Crear Ruta";
+    ResultadoRuta resultadoDelCaminoMasCorto = null;
 
     /**
      * Método de inicialización que se ejecuta después de cargar el FXML.
@@ -272,9 +294,34 @@ public class GrafoController implements ViewerListener {
      * Configura los manejadores de eventos de la interfaz de usuario.
      */
     private void setupEventHandlers() {
-        toggleAdd.setOnAction(event -> switchMode(Mode.ADD));
-        toggleRemove.setOnAction(event -> switchMode(Mode.REMOVE));
-        toggleClickable.setOnAction(event -> switchMode(Mode.CLICKABLE));
+        toggleAdd.setOnAction(event -> {
+            if (addChoiceBox.getValue().equals(CHOICE_CREAR_PARADA)) {
+                handleShowPane(panelActualizarParada);
+            } else {
+                handleShowPane(panelCrearRuta);
+            }
+            switchMode(Mode.ADD);
+        });
+        toggleRemove.setOnAction(event -> {
+            if (addChoiceBox.getValue().equals(CHOICE_CREAR_PARADA)) {
+                handleShowPane(panelActualizarParada);
+            } else {
+                handleShowPane(panelActualizarRuta);
+            }
+            switchMode(Mode.REMOVE);
+        });
+        toggleClickable.setOnAction(event -> {
+            if (addChoiceBox.getValue().equals(CHOICE_CREAR_PARADA)) {
+                handleShowPane(panelActualizarParada);
+            } else {
+                handleShowPane(panelActualizarRuta);
+            }
+            switchMode(Mode.CLICKABLE);
+        });
+        toggleCaminoMasCorto.setOnAction(event -> {
+            switchMode(Mode.SEARCH);
+            handleShowPane(panelBuscarCaminoMasCorto);
+        });
 
         toggleMenuButton.setOnAction(event -> toggleSliderBar());
 
@@ -285,15 +332,21 @@ public class GrafoController implements ViewerListener {
         actualizarRutaButton.setOnAction(e -> updateRuta());
         eliminarRutaButton.setOnAction(event -> removeRuta());
 
-        addChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            resetUI();
-            if (newValue.equals(CHOICE_CREAR_RUTA)) {
-                handleShowPane(panelCrearRuta);
-                crearRutaButton.setDisable(true);
-            } else if (newValue.equals(CHOICE_CREAR_PARADA)) {
-                handleShowPane(panelActualizarParada);
-            }
-        });
+        buscarButton.setOnAction(event -> handleDjikstra());
+        verInformacionButton.setOnAction(event -> mostrarInformacionDeBusqueda());
+
+        addChoiceBox.getSelectionModel().
+                selectedItemProperty().
+                addListener((observable, oldValue, newValue) ->
+                {
+                    resetUI();
+                    if (newValue.equals(CHOICE_CREAR_RUTA)) {
+                        handleShowPane(panelCrearRuta);
+                        crearRutaButton.setDisable(true);
+                    } else if (newValue.equals(CHOICE_CREAR_PARADA)) {
+                        handleShowPane(panelActualizarParada);
+                    }
+                });
 
         salirButton.setOnAction(event -> salir());
     }
@@ -309,7 +362,7 @@ public class GrafoController implements ViewerListener {
         setActiveToggle(mode);
     }
 
-    // Métodos Auxiliares de UI
+// Métodos Auxiliares de UI
 
     private void hideElement(javafx.scene.Node element) {
         element.setVisible(false);
@@ -325,6 +378,7 @@ public class GrafoController implements ViewerListener {
         hideElement(panelCrearRuta);
         hideElement(panelActualizarRuta);
         hideElement(panelActualizarParada);
+        hideElement(panelBuscarCaminoMasCorto);
 
         showElement(pane);
     }
@@ -347,11 +401,13 @@ public class GrafoController implements ViewerListener {
         toggleAdd.getStyleClass().remove("active-button");
         toggleRemove.getStyleClass().remove("active-button-trash");
         toggleClickable.getStyleClass().remove("active-button");
+        toggleCaminoMasCorto.getStyleClass().remove("active-button");
 
         switch (mode) {
             case ADD -> toggleAdd.getStyleClass().add("active-button");
             case REMOVE -> toggleRemove.getStyleClass().add("active-button-trash");
             case CLICKABLE -> toggleClickable.getStyleClass().add("active-button");
+            case SEARCH -> toggleCaminoMasCorto.getStyleClass().add("active-button");
         }
     }
 
@@ -390,6 +446,7 @@ public class GrafoController implements ViewerListener {
             case ADD -> handleAddMode(parada, clickedNode);
             case REMOVE -> handleRemoveMode(parada, clickedNode);
             case CLICKABLE -> handleClickableMode(parada, clickedNode);
+            case SEARCH -> handleSearchMode(parada, clickedNode);
         }
     }
 
@@ -442,6 +499,24 @@ public class GrafoController implements ViewerListener {
         hideElement(eliminarParadaButton);
     }
 
+    private void handleSearchMode(Parada parada, Node clickedNode) {
+        handleShowPane(panelBuscarCaminoMasCorto);
+        selectOrigenDestino(parada, clickedNode);
+
+        if (origenSeleccionado != null) {
+            textFieldNombreOrigen.setText(origenSeleccionado.getNombre());
+        } else {
+            textFieldNombreOrigen.setText(null);
+        }
+        if (destinoSeleccionado != null) {
+            textFieldNombreDestino.setText(destinoSeleccionado.getNombre());
+        } else {
+            textFieldNombreDestino.setText(null);
+        }
+
+        buscarButton.setDisable(origenSeleccionado == null || destinoSeleccionado == null);
+    }
+
     private void selectOrigenDestino(Parada parada, Node clickedNode) {
         if (origenSeleccionado == null) {
             origenSeleccionado = parada;
@@ -462,6 +537,9 @@ public class GrafoController implements ViewerListener {
         } else if (destinoSeleccionado == null) {
             destinoSeleccionado = parada;
             clickedNode.setAttribute("ui.class", "destino");
+        } else if (destinoSeleccionado.getId().equals(parada.getId())) {
+            clickedNode.removeAttribute("ui.class");
+            destinoSeleccionado = null;
         } else {
             Node nodoDestinoAnterior = graph.getNode(destinoSeleccionado.getId());
             if (nodoDestinoAnterior != null) {
@@ -517,7 +595,7 @@ public class GrafoController implements ViewerListener {
         }
     }
 
-    // Métodos de Operaciones
+// Métodos de Operaciones
 
     /**
      * Añade un nuevo nodo (parada) al grafo.
@@ -763,35 +841,48 @@ public class GrafoController implements ViewerListener {
         Platform.exit();
     }
 
-    // Métodos Auxiliares
+// Métodos Auxiliares
 
     private void resetUI() {
-        resetParadas();
-        resetRuta();
-    }
-
-    private void resetParadas() {
-        if (destinoSeleccionado != null) {
-            Node nodoDestino = graph.getNode(destinoSeleccionado.getId());
-            if (nodoDestino != null) {
-                nodoDestino.removeAttribute("ui.class");
+        resultadoDelCaminoMasCorto = null;
+        if (rutaSeleccionada != null) {
+            Edge edge = graph.getEdge(rutaSeleccionada.getId());
+            if (edge != null) {
+                edge.removeAttribute("ui.class");
             }
-        }
-
-        if (origenSeleccionado != null) {
-            Node nodoOrigen = graph.getNode(origenSeleccionado.getId());
-            if (nodoOrigen != null) {
-                nodoOrigen.removeAttribute("ui.class");
-            }
+            rutaSeleccionada = null;
         }
 
         if (paradaSeleccionada != null) {
-            Node nodoParada = graph.getNode(paradaSeleccionada.getId());
-            if (nodoParada != null) {
-                nodoParada.removeAttribute("ui.class");
+            Node nodo = graph.getNode(paradaSeleccionada.getId());
+            if (nodo != null) {
+                nodo.removeAttribute("ui.class");
             }
+            paradaSeleccionada = null;
         }
 
+        if (origenSeleccionado != null) {
+            Node nodo = graph.getNode(origenSeleccionado.getId());
+            if (nodo != null) {
+                nodo.removeAttribute("ui.class");
+            }
+            origenSeleccionado = null;
+        }
+
+        if (destinoSeleccionado != null) {
+            Node nodo = graph.getNode(destinoSeleccionado.getId());
+            if (nodo != null) {
+                nodo.removeAttribute("ui.class");
+            }
+            destinoSeleccionado = null;
+        }
+
+        resetParadas();
+        resetRuta();
+        resetResultadoRuta();
+    }
+
+    private void resetParadas() {
         paradaSeleccionada = null;
         origenSeleccionado = null;
         destinoSeleccionado = null;
@@ -801,33 +892,25 @@ public class GrafoController implements ViewerListener {
         eliminarParadaButton.setDisable(true);
         guardarParadaButton.setDisable(true);
 
-        if(currentMode == Mode.ADD ||currentMode == Mode.CLICKABLE){
+        if (currentMode == Mode.ADD || currentMode == Mode.CLICKABLE) {
             hideElement(eliminarParadaButton);
             showElement(guardarParadaButton);
-        }
-        else{
+        } else {
             hideElement(guardarParadaButton);
             showElement(eliminarParadaButton);
         }
     }
 
     private void resetRuta() {
-        if (rutaSeleccionada != null) {
-            Edge edge = graph.getEdge(rutaSeleccionada.getId());
-            if (edge != null) {
-                edge.removeAttribute("ui.class");
-            }
-        }
         rutaSeleccionada = null;
         resetSpinners();
         textFieldIdRuta.setText(null);
         actualizarRutaButton.setDisable(true);
         eliminarRutaButton.setDisable(true);
 
-        if(currentMode == Mode.ADD ||currentMode == Mode.CLICKABLE){
+        if (currentMode == Mode.ADD || currentMode == Mode.CLICKABLE) {
             desactivarPanelRutaParaActualizar();
-        }
-        else{
+        } else {
             desactivarPanelRutaParaEliminar();
         }
 
@@ -841,7 +924,7 @@ public class GrafoController implements ViewerListener {
         alert.showAndWait();
     }
 
-    // Configuración de Spinners
+// Configuración de Spinners
 
     private void initializeSpinners() {
         configureIntegerSpinner(spinnerDistancia, 0);
@@ -971,8 +1054,86 @@ public class GrafoController implements ViewerListener {
         resetSpinners();
     }
 
+    public void handleDjikstra() {
+        try {
+            resetEdgesFromBusqueda();
+            Parada origen = origenSeleccionado;
+            Parada destino = destinoSeleccionado;
+            boolean isTiempoChecked = checkBoxTiempo.isSelected();
+            boolean isDistanciaChecked = checkBoxDistania.isSelected();
+            boolean isCostoChecked = checkBoxCosto.isSelected();
+            boolean isTransbordosChecked = checkBoxTransbordos.isSelected();
 
-    // Implementación de ViewerListener
+            double pesoTiempo = isTiempoChecked ? 1 : 0;
+            double pesoDistancia = isDistanciaChecked ? 1 : 0;
+            double pesoCosto = isCostoChecked ? 1 : 0;
+            double pesoTransbordos = isTransbordosChecked ? 1 : 0;
+
+            if (!isCostoChecked && !isDistanciaChecked && !isTiempoChecked && !isTransbordosChecked) {
+                pesoDistancia = 1;
+            }
+
+            ResultadoRuta resultado = grafoTransporte.obtenerRutaEntreParadasConDijkstra(origen, destino, pesoTiempo, pesoDistancia, pesoTransbordos, pesoCosto);
+
+            if (resultado.getParadas().isEmpty()) {
+                mostrarAlerta(Alert.AlertType.ERROR, "Camino mas corto", "Ruta no encontrada", "Lamentablemente no fue posible encontrar una ruta.");
+                return;
+            }
+
+            resetEdgesFromBusqueda();
+            resultadoDelCaminoMasCorto = resultado;
+            mostrarResultadoRutaEnGrafo(resultado);
+            verInformacionButton.setDisable(false);
+        } catch (ParadaInexistenteException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void mostrarResultadoRutaEnGrafo(ResultadoRuta resultado) {
+        List<Ruta> rutas = resultado.getRutas();
+
+        for (Ruta ruta : rutas) {
+            Edge edge = graph.getEdge(ruta.getId());
+
+            if (edge != null) {
+                edge.setAttribute("ui.class", "importante");
+            }
+        }
+    }
+
+    public void resetResultadoRuta() {
+        textFieldNombreOrigen.setText(null);
+        textFieldNombreDestino.setText(null);
+
+        buscarButton.setDisable(true);
+        verInformacionButton.setDisable(true);
+        resetEdgesFromBusqueda();
+        resultadoDelCaminoMasCorto = null;
+    }
+
+    public void resetEdgesFromBusqueda() {
+        if (resultadoDelCaminoMasCorto == null) {
+            return;
+        }
+
+        for (Ruta ruta : resultadoDelCaminoMasCorto.getRutas()) {
+            Edge edge = graph.getEdge(ruta.getId());
+
+            if (edge != null) {
+                edge.removeAttribute("ui.class");
+            }
+        }
+    }
+
+    public void mostrarInformacionDeBusqueda() {
+        if (resultadoDelCaminoMasCorto == null) {
+            return;
+        }
+        mostrarAlerta(Alert.AlertType.INFORMATION, "Resultado del camino mas corto", "Resultado", resultadoDelCaminoMasCorto.toString());
+    }
+
+
+// Implementación de ViewerListener
 
     @Override
     public void buttonPushed(String id) {
