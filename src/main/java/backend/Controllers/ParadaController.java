@@ -8,7 +8,11 @@ import java.util.Map;
 
 public class ParadaController {
 
-    public ParadaController() {}
+    private ParadaService paradaService;
+
+    public ParadaController() {
+        this.paradaService = new ParadaService();
+    }
 
     /**
      * Crea una nueva parada después de validar los datos.
@@ -16,15 +20,15 @@ public class ParadaController {
      * @param nombre El nombre de la nueva parada.
      * @return true si la creación fue exitosa, false en caso contrario.
      */
-    public boolean create(String nombre) {
+    public Parada create(String nombre) {
         if (nombre == null || nombre.trim().isEmpty()) {
             System.err.println("Error: El nombre de la parada no puede estar vacío.");
-            return false;
+            return null;
         }
 
-        boolean creada = ParadaService.create(nombre);
+        Parada creada = paradaService.create(nombre);
 
-        if (creada) {
+        if (creada != null) {
             System.out.println("Parada creada exitosamente.");
         } else {
             System.err.println("Error al crear la parada.");
@@ -45,7 +49,7 @@ public class ParadaController {
             return null;
         }
 
-        Parada parada = ParadaService.get(paradaId);
+        Parada parada = paradaService.get(paradaId);
 
         if (parada != null) {
             System.out.println("Parada obtenida: " + parada);
@@ -62,7 +66,7 @@ public class ParadaController {
      * @return Una lista de instancias de Parada.
      */
     public List<Parada> getAll() {
-        List<Parada> paradas = ParadaService.getAllParadas();
+        List<Parada> paradas = paradaService.getAllParadas();
 
         if (paradas.isEmpty()) {
             System.out.println("No hay paradas registradas.");
@@ -74,34 +78,6 @@ public class ParadaController {
         return paradas;
     }
 
-    /**
-     * Actualiza una parada existente con nuevos datos.
-     *
-     * @param paradaId    El ID de la parada a actualizar.
-     * @param nuevoNombre El nuevo nombre para la parada.
-     * @return true si la actualización fue exitosa, false en caso contrario.
-     */
-    public boolean update(String paradaId, String nuevoNombre) {
-        if (paradaId == null || paradaId.trim().isEmpty()) {
-            System.err.println("Error: El ID de la parada no puede estar vacío.");
-            return false;
-        }
-
-        if (nuevoNombre == null || nuevoNombre.trim().isEmpty()) {
-            System.err.println("Error: El nuevo nombre de la parada no puede estar vacío.");
-            return false;
-        }
-
-        boolean actualizada = ParadaService.update(paradaId, nuevoNombre);
-
-        if (actualizada) {
-            System.out.println("Parada actualizada exitosamente.");
-        } else {
-            System.err.println("Error al actualizar la parada.");
-        }
-
-        return actualizada;
-    }
 
     /**
      * Actualiza campos específicos de una parada existente.
@@ -121,7 +97,7 @@ public class ParadaController {
             return false;
         }
 
-        boolean actualizada = ParadaService.updateFields(paradaId, nuevosCampos);
+        boolean actualizada = paradaService.updateFields(paradaId, nuevosCampos);
 
         if (actualizada) {
             System.out.println("Parada actualizada exitosamente.");
@@ -144,7 +120,7 @@ public class ParadaController {
             return false;
         }
 
-        boolean eliminada = ParadaService.delete(paradaId);
+        boolean eliminada = paradaService.delete(paradaId);
 
         if (eliminada) {
             System.out.println("Parada eliminada exitosamente.");

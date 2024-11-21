@@ -6,7 +6,7 @@ import java.util.Date;
 import java.util.Objects;
 
 public class Parada {
-    private String id;
+    private final String id;
     private String nombre;
     @ServerTimestamp
     private Date timestamp;
@@ -27,10 +27,6 @@ public class Parada {
 
     public String getId() {
         return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
     public String getNombre() {

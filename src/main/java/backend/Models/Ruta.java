@@ -1,7 +1,9 @@
 package backend.Models;
 
 import backend.Utils.IDGenerator;
+import com.google.cloud.firestore.annotation.ServerTimestamp;
 
+import java.util.Date;
 import java.util.Objects;
 
 public class Ruta {
@@ -12,6 +14,12 @@ public class Ruta {
     private int distancia;
     private double costo;
     private int transbordos;
+    @ServerTimestamp
+    private Date timestamp;
+
+    public Ruta() {
+        this.id = IDGenerator.generateId(8);
+    }
 
     public Ruta(Parada origen, Parada destino, int tiempo, int distancia, double costo, int transbordos) {
         this.id = IDGenerator.generateId(8);
@@ -75,13 +83,17 @@ public class Ruta {
         this.origen = origen;
     }
 
+    public Date getTimestamp() {
+        return timestamp;
+    }
+
     @Override
     public String toString() {
         return "ID: " + id +
-                " Origen: " + origen.getNombre() +
-                " Destino: " + destino.getNombre() +
-                ", Tiempo: " + tiempo + "min" +
-                ", Distancia: " + distancia + "m" +
+                ", Origen: " + origen.getNombre() +
+                ", Destino: " + destino.getNombre() +
+                ", Tiempo: " + tiempo + " min" +
+                ", Distancia: " + distancia + " m" +
                 ", Costo: $" + costo +
                 ", Transbordos: " + transbordos;
     }

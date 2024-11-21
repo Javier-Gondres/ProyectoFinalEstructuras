@@ -11,18 +11,22 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 public class ParadaRepository {
-    private static final Firestore db = FirebaseInitializer.getInstance().getFirestore();
-    private static final String COLLECTION_NAME = "Parada";
+    private final Firestore db;
+    private final String COLLECTION_NAME = "Parada";
+
+    public ParadaRepository() {
+        this.db = FirebaseInitializer.getInstance().getFirestore();
+    }
 
     /**
      * Crea una nueva parada en la colección "Parada" de Firestore.
      *
      * @param parada El objeto Parada a almacenar.
      */
-    public static void create(Parada parada) {
+    public boolean create(Parada parada) {
         if (parada.getId() == null || parada.getId().isEmpty()) {
             System.err.println("El ID de la parada no puede estar vacío.");
-            return;
+            return false;
         }
 
         ApiFuture<WriteResult> future = db.collection(COLLECTION_NAME)
@@ -33,11 +37,14 @@ public class ParadaRepository {
             WriteResult result = future.get();
             System.out.println("Parada creada con ID: " + parada.getId());
             System.out.println("Update time : " + result.getUpdateTime());
+            return true;
         } catch (InterruptedException e) {
             System.err.println("La operación fue interrumpida: " + e.getMessage());
             Thread.currentThread().interrupt();
+            return false;
         } catch (ExecutionException e) {
             System.err.println("Error al crear la parada: " + e.getMessage());
+            return false;
         }
     }
 
@@ -46,7 +53,7 @@ public class ParadaRepository {
      *
      * @param parada El objeto Parada con los datos actualizados.
      */
-    public static void update(Parada parada) {
+    public  void update(Parada parada) {
         if (parada.getId() == null || parada.getId().isEmpty()) {
             System.err.println("El ID de la parada no puede estar vacío.");
             return;
@@ -74,7 +81,7 @@ public class ParadaRepository {
      * @param paradaId     El ID de la parada a actualizar.
      * @param nuevosCampos Un mapa de los campos y sus nuevos valores.
      */
-    public static void updateFields(String paradaId, Map<String, Object> nuevosCampos) {
+    public  void updateFields(String paradaId, Map<String, Object> nuevosCampos) {
         if (paradaId == null || paradaId.isEmpty()) {
             System.err.println("El ID de la parada no puede estar vacío.");
             return;
@@ -101,7 +108,7 @@ public class ParadaRepository {
      *
      * @param paradaId El ID de la parada a eliminar.
      */
-    public static void delete(String paradaId) {
+    public  void delete(String paradaId) {
         if (paradaId == null || paradaId.isEmpty()) {
             System.err.println("El ID de la parada no puede estar vacío.");
             return;
@@ -129,7 +136,7 @@ public class ParadaRepository {
      * @param paradaId El ID de la parada a obtener.
      * @return Una instancia de Parada si se encuentra, o null si no existe.
      */
-    public static Parada get(String paradaId) {
+    public  Parada get(String paradaId) {
         if (paradaId == null || paradaId.isEmpty()) {
             System.err.println("El ID de la parada no puede estar vacío.");
             return null;
@@ -165,7 +172,7 @@ public class ParadaRepository {
      *
      * @return Una lista de instancias de Parada.
      */
-    public static List<Parada> getAll() {
+    public  List<Parada> getAll() {
         ApiFuture<QuerySnapshot> future = db.collection(COLLECTION_NAME).get();
         List<Parada> paradas = new ArrayList<>();
         try {
