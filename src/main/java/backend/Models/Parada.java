@@ -2,7 +2,7 @@ package backend.Models;
 
 import backend.Utils.IDGenerator;
 
-public class Parada implements Comparable<Parada>{
+public class Parada {
     private final String id;
     private String nombre;
 
@@ -35,11 +35,6 @@ public class Parada implements Comparable<Parada>{
     @Override
     public int hashCode() {
         return id.hashCode();
-    }
-
-    @Override
-    public int compareTo(Parada otraParada) {
-        return this.nombre.compareTo(otraParada.getNombre());
     }
 
     public String getId() {

@@ -294,7 +294,7 @@ public class GrafoController implements ViewerListener {
      * Configura los manejadores de eventos de la interfaz de usuario.
      */
     private void setupEventHandlers() {
-        toggleAdd.setOnAction(event -> {
+        toggleAdd.setOnAction(_ -> {
             if (addChoiceBox.getValue().equals(CHOICE_CREAR_PARADA)) {
                 handleShowPane(panelActualizarParada);
             } else {
@@ -302,7 +302,7 @@ public class GrafoController implements ViewerListener {
             }
             switchMode(Mode.ADD);
         });
-        toggleRemove.setOnAction(event -> {
+        toggleRemove.setOnAction(_ -> {
             if (addChoiceBox.getValue().equals(CHOICE_CREAR_PARADA)) {
                 handleShowPane(panelActualizarParada);
             } else {
@@ -310,7 +310,7 @@ public class GrafoController implements ViewerListener {
             }
             switchMode(Mode.REMOVE);
         });
-        toggleClickable.setOnAction(event -> {
+        toggleClickable.setOnAction(_ -> {
             if (addChoiceBox.getValue().equals(CHOICE_CREAR_PARADA)) {
                 handleShowPane(panelActualizarParada);
             } else {
@@ -318,26 +318,26 @@ public class GrafoController implements ViewerListener {
             }
             switchMode(Mode.CLICKABLE);
         });
-        toggleCaminoMasCorto.setOnAction(event -> {
+        toggleCaminoMasCorto.setOnAction(_ -> {
             switchMode(Mode.SEARCH);
             handleShowPane(panelBuscarCaminoMasCorto);
         });
 
-        toggleMenuButton.setOnAction(event -> toggleSliderBar());
+        toggleMenuButton.setOnAction(_ -> toggleSliderBar());
 
-        guardarParadaButton.setOnAction(event -> updateParada());
-        eliminarParadaButton.setOnAction(event -> removeParada());
+        guardarParadaButton.setOnAction(_ -> updateParada());
+        eliminarParadaButton.setOnAction(_ -> removeParada());
 
-        crearRutaButton.setOnAction(event -> createRuta());
-        actualizarRutaButton.setOnAction(e -> updateRuta());
-        eliminarRutaButton.setOnAction(event -> removeRuta());
+        crearRutaButton.setOnAction(_ -> createRuta());
+        actualizarRutaButton.setOnAction(_ -> updateRuta());
+        eliminarRutaButton.setOnAction(_ -> removeRuta());
 
-        buscarButton.setOnAction(event -> handleDjikstra());
-        verInformacionButton.setOnAction(event -> mostrarInformacionDeBusqueda());
+        buscarButton.setOnAction(_ -> handleDjikstra());
+        verInformacionButton.setOnAction(_ -> mostrarInformacionDeBusqueda());
 
         addChoiceBox.getSelectionModel().
                 selectedItemProperty().
-                addListener((observable, oldValue, newValue) ->
+                addListener((_, _, newValue) ->
                 {
                     resetUI();
                     if (newValue.equals(CHOICE_CREAR_RUTA)) {
@@ -348,7 +348,7 @@ public class GrafoController implements ViewerListener {
                     }
                 });
 
-        salirButton.setOnAction(event -> salir());
+        salirButton.setOnAction(_ -> salir());
     }
 
     /**
@@ -362,8 +362,7 @@ public class GrafoController implements ViewerListener {
         setActiveToggle(mode);
     }
 
-// Métodos Auxiliares de UI
-
+    // Métodos Auxiliares de UI
     private void hideElement(javafx.scene.Node element) {
         element.setVisible(false);
         element.setManaged(false);
@@ -927,14 +926,14 @@ public class GrafoController implements ViewerListener {
 // Configuración de Spinners
 
     private void initializeSpinners() {
-        configureIntegerSpinner(spinnerDistancia, 0);
-        configureIntegerSpinner(spinnerTiempo, 0);
-        configureIntegerSpinner(spinnerTranbordos, 0);
-        configureDoubleSpinner(spinnerCosto, 0.0);
+        configureIntegerSpinner(spinnerDistancia);
+        configureIntegerSpinner(spinnerTiempo);
+        configureIntegerSpinner(spinnerTranbordos);
+        configureDoubleSpinner(spinnerCosto);
     }
 
-    private void configureIntegerSpinner(Spinner<Integer> spinner, int initialValue) {
-        SpinnerValueFactory<Integer> valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE, initialValue);
+    private void configureIntegerSpinner(Spinner<Integer> spinner) {
+        SpinnerValueFactory<Integer> valueFactory = new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE, 0);
         spinner.setValueFactory(valueFactory);
         TextField editor = spinner.getEditor();
         UnaryOperator<TextFormatter.Change> integerFilter = change -> {
@@ -962,8 +961,8 @@ public class GrafoController implements ViewerListener {
         });
     }
 
-    private void configureDoubleSpinner(Spinner<Double> spinner, double initialValue) {
-        SpinnerValueFactory<Double> valueFactory = new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, 10000.0, initialValue, 0.1);
+    private void configureDoubleSpinner(Spinner<Double> spinner) {
+        SpinnerValueFactory<Double> valueFactory = new SpinnerValueFactory.DoubleSpinnerValueFactory(0.0, 10000.0, 0.0, 0.1);
         spinner.setValueFactory(valueFactory);
         TextField editor = spinner.getEditor();
         UnaryOperator<TextFormatter.Change> doubleFilter = change -> {
@@ -1075,7 +1074,7 @@ public class GrafoController implements ViewerListener {
 
             ResultadoRuta resultado = grafoTransporte.obtenerRutaEntreParadasConDijkstra(origen, destino, pesoTiempo, pesoDistancia, pesoTransbordos, pesoCosto);
 
-            if (resultado.getParadas().isEmpty()) {
+            if (resultado.paradas().isEmpty()) {
                 mostrarAlerta(Alert.AlertType.ERROR, "Camino mas corto", "Ruta no encontrada", "Lamentablemente no fue posible encontrar una ruta.");
                 return;
             }
@@ -1090,7 +1089,7 @@ public class GrafoController implements ViewerListener {
     }
 
     public void mostrarResultadoRutaEnGrafo(ResultadoRuta resultado) {
-        List<Ruta> rutas = resultado.getRutas();
+        List<Ruta> rutas = resultado.rutas();
 
         for (Ruta ruta : rutas) {
             Edge edge = graph.getEdge(ruta.getId());
@@ -1116,7 +1115,7 @@ public class GrafoController implements ViewerListener {
             return;
         }
 
-        for (Ruta ruta : resultadoDelCaminoMasCorto.getRutas()) {
+        for (Ruta ruta : resultadoDelCaminoMasCorto.rutas()) {
             Edge edge = graph.getEdge(ruta.getId());
 
             if (edge != null) {
