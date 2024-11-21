@@ -12,8 +12,8 @@ import backend.Utils.GrafoUtils;
 import java.util.*;
 
 public class GrafoTransporte implements Grafo {
-    private Map<Parada, List<Ruta>> listaAdyacencia;
-    private Set<String> nombresExistentes;
+    private final Map<Parada, List<Ruta>> listaAdyacencia;
+    private final Set<String> nombresExistentes;
 
     public GrafoTransporte() {
         listaAdyacencia = new HashMap<>();

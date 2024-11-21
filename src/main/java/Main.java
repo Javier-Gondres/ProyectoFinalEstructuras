@@ -1,3 +1,4 @@
+import backend.Controllers.ParadaController;
 import com.google.cloud.firestore.Firestore;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
