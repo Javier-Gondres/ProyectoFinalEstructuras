@@ -12,12 +12,20 @@ import backend.Utils.GrafoUtils;
 import java.util.*;
 
 public class GrafoTransporte implements Grafo {
+    private static final GrafoTransporte INSTANCE = new GrafoTransporte();
+
     private final Map<Parada, List<Ruta>> listaAdyacencia;
     private final Set<String> nombresExistentes;
+    private final Map<String, Parada> paradas;
 
-    public GrafoTransporte() {
+    private GrafoTransporte() {
         listaAdyacencia = new HashMap<>();
         nombresExistentes = new HashSet<>();
+        paradas = new HashMap<>();
+    }
+
+    public static GrafoTransporte getInstance() {
+        return INSTANCE;
     }
 
     public void agregarParada(Parada parada) throws ParadaDuplicadaException {
@@ -27,13 +35,23 @@ public class GrafoTransporte implements Grafo {
         if (nombresExistentes.contains(parada.getNombre())) {
             throw new ParadaDuplicadaException("Error: La parada '" + parada.getNombre() + "' ya existe.");
         }
+        if (paradas.containsKey(parada.getId())) {
+            throw new ParadaDuplicadaException("Error: La parada con ID '" + parada.getId() + "' ya existe.");
+        }
 
         nombresExistentes.add(parada.getNombre());
         listaAdyacencia.put(parada, new ArrayList<>());
+        paradas.put(parada.getId(), parada);
     }
 
-    public void modificarParada(Parada paradaExistente, String nuevoNombre)
+    public void modificarParada(String id, String nuevoNombre)
             throws ParadaInexistenteException, ParadaDuplicadaException {
+
+        Parada paradaExistente = obtenerParada(id);
+
+        if(paradaExistente == null){
+            throw new ParadaInexistenteException("Error: La parada con ID '" + id + "' no existe.");
+        }
 
         if (!listaAdyacencia.containsKey(paradaExistente)) {
             throw new ParadaInexistenteException("Error: La parada '" + paradaExistente.getNombre() + "' no existe.");
@@ -49,7 +67,13 @@ public class GrafoTransporte implements Grafo {
         paradaExistente.setNombre(nuevoNombre);
     }
 
-    public void eliminarParada(Parada parada) throws ParadaInexistenteException {
+    public void eliminarParada(String id) throws ParadaInexistenteException {
+        Parada parada = obtenerParada(id);
+
+        if(parada == null){
+            throw new ParadaInexistenteException("Error: La parada con ID '" + id + "' no existe.");
+        }
+
         if (!listaAdyacencia.containsKey(parada)) {
             throw new ParadaInexistenteException("Error: La parada '" + parada.getNombre() + "' no existe.");
         }
@@ -59,15 +83,21 @@ public class GrafoTransporte implements Grafo {
         nombresExistentes.remove(parada.getNombre());
 
         for (List<Ruta> rutas : listaAdyacencia.values()) {
-            rutas.removeIf(ruta -> ruta.getDestino().equals(parada));
+            rutas.removeIf(ruta -> ruta.getDestinoId().equals(parada.getId()));
         }
+
+        paradas.remove(id);
+    }
+
+    public Parada obtenerParada(String id) {
+        return paradas.get(id);
     }
 
     public void agregarRuta(Ruta ruta)
             throws ParadaInexistenteException, RutaDuplicadaException {
 
-        Parada origen = ruta.getOrigen();
-        Parada destino = ruta.getDestino();
+        Parada origen = obtenerParada(ruta.getOrigenId());
+        Parada destino = obtenerParada(ruta.getDestinoId());
 
         if (origen == null || destino == null) {
             throw new IllegalArgumentException("Las paradas no pueden ser nulas");
@@ -83,7 +113,7 @@ public class GrafoTransporte implements Grafo {
         }
 
         for (Ruta rutaBuscada : listaAdyacencia.get(origen)) {
-            if (rutaBuscada.getDestino().equals(destino)) {
+            if (rutaBuscada.getDestinoId().equals(destino.getId())) {
                 throw new RutaDuplicadaException("Error: Ya existe una ruta entre " + origen.getNombre() + " y " + destino.getNombre());
             }
         }
@@ -102,22 +132,22 @@ public class GrafoTransporte implements Grafo {
             throw new IllegalArgumentException("La ruta no puede ser nula");
         }
 
-        Parada origen = ruta.getOrigen();
+        Parada origen = obtenerParada(ruta.getOrigenId());
         if (!listaAdyacencia.containsKey(origen)) {
             throw new ParadaInexistenteException("Error: La ruta especificada no existe en el grafo.");
         }
 
         boolean rutaExist = false;
 
-        for(Ruta rutaABuscar : listaAdyacencia.get(origen)){
-            System.out.println("ID DE LA RUTA BUSCADA: "+ rutaABuscar.getId());
+        for (Ruta rutaABuscar : listaAdyacencia.get(origen)) {
+            System.out.println("ID DE LA RUTA BUSCADA: " + rutaABuscar.getId());
             if (rutaABuscar.equals(ruta)) {
                 rutaExist = true;
                 break;
             }
         }
 
-        if(!rutaExist){
+        if (!rutaExist) {
             throw new RutaInexistenteException("Error: La ruta especificada no existe en el grafo.");
         }
 
@@ -127,8 +157,11 @@ public class GrafoTransporte implements Grafo {
         ruta.setTransbordos(nuevosTransbordos);
     }
 
-    public void eliminarRuta(Parada origen, Parada destino)
+    public void eliminarRuta(String origenId, String destinoId)
             throws ParadaInexistenteException, RutaInexistenteException {
+
+        Parada origen = obtenerParada(origenId);
+        Parada destino = obtenerParada(destinoId);
 
         if (!listaAdyacencia.containsKey(origen)) {
             throw new ParadaInexistenteException("Error: La parada de origen '" + origen.getNombre() + "' no existe.");
@@ -139,7 +172,7 @@ public class GrafoTransporte implements Grafo {
 
         List<Ruta> rutasDesdeOrigen = listaAdyacencia.get(origen);
 
-        boolean rutaEliminada = rutasDesdeOrigen.removeIf(ruta -> ruta.getDestino().equals(destino));
+        boolean rutaEliminada = rutasDesdeOrigen.removeIf(ruta -> ruta.getDestinoId().equals(destino.getId()));
 
         if (!rutaEliminada) {
             throw new RutaInexistenteException("Error: No existe una ruta entre " +
@@ -157,7 +190,7 @@ public class GrafoTransporte implements Grafo {
 
         List<Ruta> rutasDesdeOrigen = listaAdyacencia.get(origen);
         for (Ruta ruta : rutasDesdeOrigen) {
-            if (ruta.getDestino().equals(destino)) {
+            if (ruta.getDestinoId().equals(destino.getId())) {
                 return ruta;
             }
         }
@@ -186,7 +219,7 @@ public class GrafoTransporte implements Grafo {
     public ResultadoRuta obtenerRutaEntreParadasConDijkstra(Parada origen, Parada destino, double pesoTiempo, double pesoDistancia, double pesoTransbordos, double pesoCosto) throws ParadaInexistenteException, IllegalArgumentException {
         GrafoUtils.verificarParadasExistentes(this, origen, destino);
 
-        Dijkstra dijkstra = new Dijkstra(listaAdyacencia, pesoTiempo, pesoDistancia, pesoTransbordos, pesoCosto);
+        Dijkstra dijkstra = new Dijkstra(pesoTiempo, pesoDistancia, pesoTransbordos, pesoCosto);
 
         return dijkstra.obtenerRutaEntreParadas(origen, destino);
     }
@@ -202,6 +235,16 @@ public class GrafoTransporte implements Grafo {
     public boolean contieneParada(Parada parada) {
         return listaAdyacencia.containsKey(parada);
     }
+
+    public Map<Parada, List<Ruta>> getListaAdyacencia() {
+        return listaAdyacencia;
+    }
+
+    public Set<String> getNombresExistentes() {
+        return nombresExistentes;
+    }
+
+    public Map<String, Parada> getParadas() {
+        return paradas;
+    }
 }
-
-

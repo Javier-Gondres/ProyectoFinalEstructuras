@@ -8,8 +8,8 @@ import java.util.Objects;
 
 public class Ruta {
     private final String id;
-    private Parada origen;
-    private Parada destino;
+    private String origenId;
+    private String destinoId;
     private int tiempo;
     private int distancia;
     private double costo;
@@ -21,22 +21,31 @@ public class Ruta {
         this.id = IDGenerator.generateId(8);
     }
 
-    public Ruta(Parada origen, Parada destino, int tiempo, int distancia, double costo, int transbordos) {
+    public Ruta(String origenId, String destinoId, int tiempo, int distancia, double costo, int transbordos) {
         this.id = IDGenerator.generateId(8);
-        this.origen = origen;
-        this.destino = destino;
+        this.origenId = origenId;
+        this.destinoId = destinoId;
         this.tiempo = tiempo;
         this.distancia = distancia;
         this.costo = costo;
         this.transbordos = transbordos;
     }
 
-    public Parada getDestino() {
-        return destino;
+
+    public String getOrigenId() {
+        return origenId;
     }
 
-    public void setDestino(Parada destino) {
-        this.destino = destino;
+    public void setOrigenId(String origenId) {
+        this.origenId = origenId;
+    }
+
+    public String getDestinoId() {
+        return destinoId;
+    }
+
+    public void setDestinoId(String destinoId) {
+        this.destinoId = destinoId;
     }
 
     public int getTiempo() {
@@ -75,27 +84,21 @@ public class Ruta {
         return id;
     }
 
-    public Parada getOrigen() {
-        return origen;
-    }
-
-    public void setOrigen(Parada origen) {
-        this.origen = origen;
-    }
-
     public Date getTimestamp() {
         return timestamp;
     }
 
     @Override
     public String toString() {
-        return "ID: " + id +
-                ", Origen: " + origen.getNombre() +
-                ", Destino: " + destino.getNombre() +
-                ", Tiempo: " + tiempo + " min" +
-                ", Distancia: " + distancia + " m" +
-                ", Costo: $" + costo +
-                ", Transbordos: " + transbordos;
+        return "Ruta{" +
+                "id='" + id + '\'' +
+                ", origenId='" + origenId + '\'' +
+                ", destinoId='" + destinoId + '\'' +
+                ", tiempo=" + tiempo +
+                ", distancia=" + distancia +
+                ", costo=" + costo +
+                ", transbordos=" + transbordos +
+                '}';
     }
 
     @Override

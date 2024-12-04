@@ -98,7 +98,7 @@ public class CreateRutaDialogController {
             double costo = Double.parseDouble(costoField.getText().trim());
             int transbordos = Integer.parseInt(transbordosField.getText().trim());
 
-            ruta = new Ruta(origen, destino, tiempo, distancia, costo, transbordos);
+            ruta = new Ruta(origen.getId(), destino.getId(), tiempo, distancia, costo, transbordos);
             try {
                 grafoTransporte.agregarRuta(ruta);
                 isConfirmed = true;

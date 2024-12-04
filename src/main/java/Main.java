@@ -14,14 +14,14 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
         try {
-            ParadaController paradaController = new ParadaController();
-            Parada destino = paradaController.create("Destino");
-            Parada origen = paradaController.get("8840f814");
-
-            RutaController rutaController= new RutaController();
-
-            Ruta r = new Ruta(origen, destino, 2, 2, 2, 2);
-            rutaController.create(r);
+//            ParadaController paradaController = new ParadaController();
+//            Parada destino = paradaController.create("Destino");
+//            Parada origen = paradaController.get("8840f814");
+//
+//            RutaController rutaController= new RutaController();
+//
+//            Ruta r = new Ruta(origen.getId(), destino.getId(), 2, 2, 2, 2);
+//            rutaController.create(r);
 
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(getClass().getResource("/Screens/Grafo/Grafo.fxml"));

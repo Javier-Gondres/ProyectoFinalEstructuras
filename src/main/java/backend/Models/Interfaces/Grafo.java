@@ -13,17 +13,17 @@ import java.util.List;
 public interface Grafo {
     void agregarParada(Parada parada) throws ParadaDuplicadaException;
 
-    void modificarParada(Parada paradaExistente, String nuevoNombre)
+    void modificarParada(String id, String nuevoNombre)
             throws ParadaInexistenteException, ParadaDuplicadaException;
 
-    void eliminarParada(Parada parada) throws ParadaInexistenteException;
+    void eliminarParada(String id) throws ParadaInexistenteException;
 
     void agregarRuta(Ruta ruta) throws ParadaInexistenteException, RutaDuplicadaException;
 
     void modificarRuta(Ruta ruta, int nuevoTiempo, int nuevaDistancia, double nuevoCosto, int nuevosTransbordos)
             throws RutaInexistenteException, ParadaInexistenteException;
 
-    void eliminarRuta(Parada origen, Parada destino)
+    void eliminarRuta(String origenId, String  destinoId)
             throws ParadaInexistenteException, RutaInexistenteException;
 
     List<Parada> obtenerParadas();

@@ -55,7 +55,7 @@ public class FloydWarshall extends AlgoritmoGrafo {
         for (Parada origenParada : grafo.obtenerParadas()) {
             int i = paradaIndices.get(origenParada);
             for (Ruta ruta : grafo.obtenerRutasDesde(origenParada)) {
-                Parada destinoParada = ruta.getDestino();
+                Parada destinoParada = grafo.obtenerParada(ruta.getDestinoId());
                 int j = paradaIndices.get(destinoParada);
 
                 double pesoRuta = GrafoUtils.calcularPesoRuta(ruta, pesoTiempo, pesoDistancia, pesoTransbordos, pesoCosto);

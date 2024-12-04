@@ -30,22 +30,22 @@ public class RutaService {
      * @return true si la creación fue exitosa, false en caso contrario.
      */
     public boolean create(Ruta ruta) {
-        if (ruta.getOrigen() == null || ruta.getOrigen().getId().isEmpty()) {
+        if (ruta.getOrigenId() == null) {
             System.err.println("Error: La ruta debe tener una parada de origen válida.");
             return false;
         }
 
-        if (ruta.getDestino() == null || ruta.getDestino().getId().isEmpty()) {
+        if (ruta.getDestinoId() == null) {
             System.err.println("Error: La ruta debe tener una parada de destino válida.");
             return false;
         }
 
-        if(paradaRepository.get(ruta.getOrigen().getId()) == null){
+        if(paradaRepository.get(ruta.getOrigenId()) == null){
             System.err.println("Error: El origen no se encontro en la base de datos.");
             return false;
         }
 
-        if(paradaRepository.get(ruta.getDestino().getId()) == null){
+        if(paradaRepository.get(ruta.getDestinoId()) == null){
             System.err.println("Error: El destino no se encontro en la base de datos.");
             return false;
         }

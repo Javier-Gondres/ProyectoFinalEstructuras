@@ -1,23 +1,20 @@
 package backend.Models.GraphAlgorithms;
 
 import backend.Models.*;
-import backend.Models.Excepciones.ParadaInexistenteException;
-import backend.Models.Excepciones.RutaInexistenteException;
-import backend.Models.Interfaces.Grafo;
 import backend.Utils.GrafoUtils;
 
 import java.util.*;
 
 public class Dijkstra extends AlgoritmoGrafo {
 
-    private Map<Parada, List<Ruta>> listaAdyacencia;
+    private final GrafoTransporte grafo;
     private double pesoTiempo;
     private double pesoDistancia;
     private double pesoTransbordos;
     private double pesoCosto;
 
-    public Dijkstra(Map<Parada, List<Ruta>> listaAdyacencia, double pesoTiempo, double pesoDistancia, double pesoTransbordos, double pesoCosto) {
-        this.listaAdyacencia = listaAdyacencia;
+    public Dijkstra(double pesoTiempo, double pesoDistancia, double pesoTransbordos, double pesoCosto) {
+        this.grafo = GrafoTransporte.getInstance();
         this.pesoTiempo = pesoTiempo;
         this.pesoDistancia = pesoDistancia;
         this.pesoTransbordos = pesoTransbordos;
@@ -45,8 +42,8 @@ public class Dijkstra extends AlgoritmoGrafo {
                 return GrafoUtils.construirRuta(paradaWrapper);
             }
 
-            for (Ruta ruta : listaAdyacencia.get(parada)) {
-                Parada vecino = ruta.getDestino();
+            for (Ruta ruta : grafo.getListaAdyacencia().get(parada)) {
+                Parada vecino =  grafo.obtenerParada(ruta.getDestinoId());
                 if (shortestPathFound.contains(vecino)) {
                     continue;
                 }

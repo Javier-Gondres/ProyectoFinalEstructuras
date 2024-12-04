@@ -115,7 +115,7 @@ public class GrafoController implements ViewerListener {
     private Graph graph;
     private FxViewer viewer;
     private FxViewPanel view;
-    private final Grafo grafoTransporte = new GrafoTransporte();
+    private final Grafo grafoTransporte = GrafoTransporte.getInstance();
     private ViewerPipe fromViewer;
     private ExecutorService executorService;
     private Parada origenSeleccionado = null;
@@ -644,7 +644,7 @@ public class GrafoController implements ViewerListener {
         }
 
         try {
-            grafoTransporte.modificarParada(paradaSeleccionada, nuevoNombre);
+            grafoTransporte.modificarParada(paradaSeleccionada.getId(), nuevoNombre);
             Node nodo = graph.getNode(paradaSeleccionada.getId());
             if (nodo != null) {
                 nodo.setAttribute("ui.label", nuevoNombre);
@@ -673,7 +673,7 @@ public class GrafoController implements ViewerListener {
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
-                grafoTransporte.eliminarParada(paradaSeleccionada);
+                grafoTransporte.eliminarParada(paradaSeleccionada.getId());
                 graph.removeNode(paradaSeleccionada.getId());
                 resetParadas();
                 textFieldIdParada.setText(null);
@@ -723,8 +723,8 @@ public class GrafoController implements ViewerListener {
     }
 
     private void agregarRutaAlGrafo(Ruta nuevaRuta) {
-        Node origenNode = graph.getNode(nuevaRuta.getOrigen().getId());
-        Node destinoNode = graph.getNode(nuevaRuta.getDestino().getId());
+        Node origenNode = graph.getNode(nuevaRuta.getOrigenId());
+        Node destinoNode = graph.getNode(nuevaRuta.getDestinoId());
 
         Edge edge = graph.addEdge(nuevaRuta.getId(), origenNode, destinoNode, true);
         edge.setAttribute("ui.interactive", true);
@@ -805,7 +805,7 @@ public class GrafoController implements ViewerListener {
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
-                grafoTransporte.eliminarRuta(rutaSeleccionada.getOrigen(), rutaSeleccionada.getDestino());
+                grafoTransporte.eliminarRuta(rutaSeleccionada.getOrigenId(), rutaSeleccionada.getDestinoId());
                 graph.removeEdge(edge);
                 resetRuta();
                 desactivarPanelRutaParaEliminar();
@@ -844,14 +844,12 @@ public class GrafoController implements ViewerListener {
 
     private void resetUI() {
         resultadoDelCaminoMasCorto = null;
-        if (rutaSeleccionada != null) {
-            Edge edge = graph.getEdge(rutaSeleccionada.getId());
-            if (edge != null) {
-                edge.removeAttribute("ui.class");
-            }
-            rutaSeleccionada = null;
-        }
+        resetParadas();
+        resetRuta();
+        resetResultadoRuta();
+    }
 
+    private void resetParadas() {
         if (paradaSeleccionada != null) {
             Node nodo = graph.getNode(paradaSeleccionada.getId());
             if (nodo != null) {
@@ -876,15 +874,6 @@ public class GrafoController implements ViewerListener {
             destinoSeleccionado = null;
         }
 
-        resetParadas();
-        resetRuta();
-        resetResultadoRuta();
-    }
-
-    private void resetParadas() {
-        paradaSeleccionada = null;
-        origenSeleccionado = null;
-        destinoSeleccionado = null;
         textFieldNombreParada.setText(null);
         textFieldIdParada.setText(null);
         textFieldNombreParada.setDisable(true);
@@ -901,7 +890,13 @@ public class GrafoController implements ViewerListener {
     }
 
     private void resetRuta() {
-        rutaSeleccionada = null;
+        if (rutaSeleccionada != null) {
+            Edge edge = graph.getEdge(rutaSeleccionada.getId());
+            if (edge != null) {
+                edge.removeAttribute("ui.class");
+            }
+            rutaSeleccionada = null;
+        }
         resetSpinners();
         textFieldIdRuta.setText(null);
         actualizarRutaButton.setDisable(true);
