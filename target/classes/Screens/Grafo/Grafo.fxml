@@ -102,9 +102,6 @@
                   BorderPane.alignment="CENTER">
                 <children>
                     <Label prefHeight="26.0" prefWidth="44.0" text="Menú" textAlignment="CENTER"/>
-                    <Button fx:id="crearGrafoButton" prefHeight="30.0" prefWidth="142.0" text="Crear nueva ruta"/>
-                    <Button fx:id="cargarRutaButton" prefHeight="30.0" prefWidth="142.0" text="Cargar ruta"/>
-                    <Button fx:id="eliminarGrafo" prefHeight="30.0" prefWidth="142.0" text="Eliminar ruta"/>
                     <Button fx:id="salirButton" prefHeight="30.0" prefWidth="142.0" text="Salir"/>
                 </children>
             </VBox>

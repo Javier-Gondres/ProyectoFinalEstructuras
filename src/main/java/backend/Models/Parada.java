@@ -2,6 +2,7 @@ package backend.Models;
 
 import backend.Utils.IDGenerator;
 import com.google.cloud.firestore.annotation.ServerTimestamp;
+
 import java.util.Date;
 import java.util.Objects;
 
@@ -47,10 +48,9 @@ public class Parada {
 
     @Override
     public String toString() {
-        return "Parada{" +
+        return "Parada: {" + '\'' +
                 "id='" + id + '\'' +
                 ", nombre='" + nombre + '\'' +
-                ", timestamp=" + timestamp +
                 '}';
     }
 
