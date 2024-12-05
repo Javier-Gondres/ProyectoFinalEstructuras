@@ -1198,7 +1198,8 @@ public class FrontendGrafoController implements ViewerListener {
         if (resultadoDelCaminoMasCorto == null) {
             return;
         }
-        mostrarAlerta(Alert.AlertType.INFORMATION, "Resultado del camino mas corto", "Resultado", resultadoDelCaminoMasCorto.toString());
+
+        mostrarAlerta(Alert.AlertType.INFORMATION, "Resultado del camino mas corto", "Resultado", resultadoDelCaminoMasCorto.mostrarParadas());
     }
 
     @Override

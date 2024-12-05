@@ -10,16 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
-/**
- * Repositorio para manejar operaciones de persistencia relacionadas con las rutas.
- */
 public class RutaRepository {
     private final Firestore db;
     private static final String COLLECTION_NAME = "Ruta";
 
-    /**
-     * Constructor que inicializa la instancia de Firestore.
-     */
+
     public RutaRepository() {
         this.db = FirebaseInitializer.getInstance().getFirestore();
     }
