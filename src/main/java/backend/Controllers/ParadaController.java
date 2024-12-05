@@ -8,7 +8,7 @@ import java.util.Map;
 
 public class ParadaController {
 
-    private ParadaService paradaService;
+    private final ParadaService paradaService;
 
     public ParadaController() {
         this.paradaService = new ParadaService();

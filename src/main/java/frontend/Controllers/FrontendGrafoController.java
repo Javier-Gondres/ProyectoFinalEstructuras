@@ -2,7 +2,6 @@ package frontend.Controllers;
 
 import backend.Models.Excepciones.*;
 import backend.Models.*;
-import backend.Models.Interfaces.Grafo;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.event.EventHandler;
@@ -33,7 +32,9 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.UnaryOperator;
 
-public class GrafoController implements ViewerListener {
+import backend.Controllers.GrafoController;
+
+public class FrontendGrafoController implements ViewerListener {
 
     @FXML
     private StackPane graphContainer;
@@ -45,10 +46,6 @@ public class GrafoController implements ViewerListener {
     private Button toggleMenuButton;
     @FXML
     private Button guardarParadaButton;
-    @FXML
-    private Button crearGrafoButton;
-    @FXML
-    private Button cargarRutaButton;
     @FXML
     private Button salirButton;
     @FXML
@@ -88,7 +85,7 @@ public class GrafoController implements ViewerListener {
     @FXML
     private Button eliminarRutaButton;
 
-    //Panel camino mas corto
+
     @FXML
     public Button toggleCaminoMasCorto;
     @FXML
@@ -110,12 +107,10 @@ public class GrafoController implements ViewerListener {
     @FXML
     public CheckBox checkBoxTransbordos;
 
-    // Variables de Control
     private boolean isSliderBarVisible = false;
     private Graph graph;
     private FxViewer viewer;
     private FxViewPanel view;
-    private final Grafo grafoTransporte = GrafoTransporte.getInstance();
     private ViewerPipe fromViewer;
     private ExecutorService executorService;
     private Parada origenSeleccionado = null;
@@ -126,6 +121,7 @@ public class GrafoController implements ViewerListener {
     private final String CHOICE_CREAR_PARADA = "Crear Parada";
     private final String CHOICE_CREAR_RUTA = "Crear Ruta";
     ResultadoRuta resultadoDelCaminoMasCorto = null;
+    private final GrafoController backendGrafoController = GrafoController.getInstance();
 
     /**
      * Método de inicialización que se ejecuta después de cargar el FXML.
@@ -136,9 +132,8 @@ public class GrafoController implements ViewerListener {
         setupGraphStream();
         setupViewerPipe();
         setupEventHandlers();
+        loadData();
     }
-
-    // Métodos de Inicialización
 
     /**
      * Configura los componentes de la interfaz de usuario.
@@ -282,7 +277,7 @@ public class GrafoController implements ViewerListener {
             try {
                 while (!Thread.currentThread().isInterrupted()) {
                     fromViewer.pump();
-                    Thread.sleep(100); // Pausa para no sobrecargar el CPU
+                    Thread.sleep(100);
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -362,7 +357,6 @@ public class GrafoController implements ViewerListener {
         setActiveToggle(mode);
     }
 
-    // Métodos Auxiliares de UI
     private void hideElement(javafx.scene.Node element) {
         element.setVisible(false);
         element.setManaged(false);
@@ -422,8 +416,6 @@ public class GrafoController implements ViewerListener {
         transition.play();
     }
 
-    // Manejadores de Eventos
-
     /**
      * Maneja el evento cuando se hace clic en un nodo.
      *
@@ -452,7 +444,6 @@ public class GrafoController implements ViewerListener {
     private void handleAddMode(Parada parada, Node clickedNode) {
         if (addChoiceBox.getValue().equals(CHOICE_CREAR_RUTA)) {
             handleShowPane(panelCrearRuta);
-            // Lógica para seleccionar origen y destino
             selectOrigenDestino(parada, clickedNode);
             crearRutaButton.setDisable(origenSeleccionado == null || destinoSeleccionado == null);
         }
@@ -552,6 +543,7 @@ public class GrafoController implements ViewerListener {
     private void handleEdgeClicked(String edgeId) {
         handleShowPane(panelActualizarRuta);
         resetParadas();
+        resetEdgesFromBusqueda();
 
         Edge edge = graph.getEdge(edgeId);
         if (edge == null) {
@@ -594,8 +586,6 @@ public class GrafoController implements ViewerListener {
         }
     }
 
-// Métodos de Operaciones
-
     /**
      * Añade un nuevo nodo (parada) al grafo.
      *
@@ -607,20 +597,21 @@ public class GrafoController implements ViewerListener {
             return;
         }
 
-        Parada nuevaParada = new Parada(nombre.trim());
-
         try {
-            grafoTransporte.agregarParada(nuevaParada);
+            Parada nuevaParada = backendGrafoController.crearParada(nombre.trim());
+            if (nuevaParada == null) {
+                mostrarAlerta(Alert.AlertType.ERROR, "Error", null, "No se pudo crear la parada.");
+                return;
+            }
+            String nodeId = nuevaParada.getId();
+            Node nodo = graph.addNode(nodeId);
+            nodo.setAttribute("parada", nuevaParada);
+            nodo.setAttribute("ui.label", nuevaParada.getNombre());
+            nodo.setAttribute("layout.weight", 1);
         } catch (ParadaDuplicadaException e) {
-            mostrarAlerta(Alert.AlertType.ERROR, "Parada Duplicada", null, "La parada ya existe.");
-            return;
+            mostrarAlerta(Alert.AlertType.ERROR, "No se pudo crear la parada", null, "Ya existe una parada con este nombre");
         }
 
-        String nodeId = nuevaParada.getId();
-        Node nodo = graph.addNode(nodeId);
-        nodo.setAttribute("parada", nuevaParada);
-        nodo.setAttribute("ui.label", nuevaParada.getNombre());
-        nodo.setAttribute("layout.weight", 1);
     }
 
     /**
@@ -644,16 +635,22 @@ public class GrafoController implements ViewerListener {
         }
 
         try {
-            grafoTransporte.modificarParada(paradaSeleccionada.getId(), nuevoNombre);
-            Node nodo = graph.getNode(paradaSeleccionada.getId());
-            if (nodo != null) {
-                nodo.setAttribute("ui.label", nuevoNombre);
+            boolean actualizado = backendGrafoController.actualizarParada(paradaSeleccionada.getId(), nuevoNombre.trim());
+            if (actualizado) {
+                Node nodo = graph.getNode(paradaSeleccionada.getId());
+                if (nodo != null) {
+                    nodo.setAttribute("ui.label", nuevoNombre);
+                }
+                mostrarAlerta(Alert.AlertType.INFORMATION, "Parada Actualizada", null, "La parada se ha actualizado exitosamente.");
+            } else {
+                mostrarAlerta(Alert.AlertType.ERROR, "Error al actualizar", null, "No se pudo actualizar la parada.");
             }
-            mostrarAlerta(Alert.AlertType.INFORMATION, "Parada actualizada", null, "La parada se ha actualizado exitosamente.");
-        } catch (ParadaInexistenteException | ParadaDuplicadaException e) {
-            mostrarAlerta(Alert.AlertType.ERROR, "Error al actualizar", null, "No se pudo actualizar la parada.");
-            System.err.println("No se pudo actualizar la parada: " + e);
+        } catch (ParadaDuplicadaException e) {
+            mostrarAlerta(Alert.AlertType.ERROR, "Error al actualizar", null, "Ya existe una parada con ese nombre");
+        } catch (ParadaInexistenteException e) {
+            mostrarAlerta(Alert.AlertType.ERROR, "Error al actualizar", null, "La parada no existe");
         }
+
     }
 
     /**
@@ -671,20 +668,26 @@ public class GrafoController implements ViewerListener {
         alert.setHeaderText("");
         alert.setContentText("¿Está seguro que desea eliminar la parada '" + paradaSeleccionada.getNombre() + "' y todas sus rutas asociadas?");
         Optional<ButtonType> result = alert.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            try {
-                grafoTransporte.eliminarParada(paradaSeleccionada.getId());
+        if (result.isEmpty() || result.get() != ButtonType.OK) {
+            return;
+        }
+
+        try {
+            boolean eliminada = backendGrafoController.eliminarParada(paradaSeleccionada.getId());
+            if (eliminada) {
                 graph.removeNode(paradaSeleccionada.getId());
                 resetParadas();
                 textFieldIdParada.setText(null);
                 textFieldNombreParada.setText(null);
                 eliminarParadaButton.setDisable(true);
-                mostrarAlerta(Alert.AlertType.INFORMATION, "Parada eliminada", null, "La parada y sus rutas asociadas han sido eliminadas.");
-            } catch (ParadaInexistenteException e) {
+                mostrarAlerta(Alert.AlertType.INFORMATION, "Parada Eliminada", null, "La parada y sus rutas asociadas han sido eliminadas.");
+            } else {
                 mostrarAlerta(Alert.AlertType.ERROR, "Error", null, "No se pudo eliminar la parada. Inténtelo más tarde.");
-                System.err.println("No se pudo eliminar la parada: " + e);
             }
+        } catch (ParadaInexistenteException e) {
+            mostrarAlerta(Alert.AlertType.ERROR, "Error", null, "No se pudo eliminar la parada. Inténtelo más tarde.");
         }
+
     }
 
     /**
@@ -704,7 +707,6 @@ public class GrafoController implements ViewerListener {
             controller.setDialogStage(dialogStage);
             controller.setOrigen(origenSeleccionado);
             controller.setDestino(destinoSeleccionado);
-            controller.setGrafoTransporte(grafoTransporte);
 
             Scene scene = new Scene(root);
             dialogStage.setScene(scene);
@@ -762,25 +764,38 @@ public class GrafoController implements ViewerListener {
             return;
         }
 
+
+        Ruta nuevosDatosRuta = new Ruta(rutaSeleccionada.getOrigenId(),
+                rutaSeleccionada.getDestinoId(), nuevoTiempo, nuevaDistancia, nuevoCosto, nuevosTransbordos);
+
         try {
-            grafoTransporte.modificarRuta(rutaSeleccionada, nuevoTiempo, nuevaDistancia, nuevoCosto, nuevosTransbordos);
+            boolean actualizado = backendGrafoController.actualizarRuta(rutaSeleccionada.getId(), nuevosDatosRuta);
+            if (actualizado) {
+                String labelText = String.format("Distancia: %d\nTiempo: %d\nCosto: %.2f\nTransbordos: %d",
+                        nuevosDatosRuta.getDistancia(),
+                        nuevosDatosRuta.getTiempo(),
+                        nuevosDatosRuta.getCosto(),
+                        nuevosDatosRuta.getTransbordos());
 
-            String labelText = String.format("Distancia: %d\nTiempo: %d\nCosto: %.2f\nTransbordos: %d",
-                    rutaSeleccionada.getDistancia(),
-                    rutaSeleccionada.getTiempo(),
-                    rutaSeleccionada.getCosto(),
-                    rutaSeleccionada.getTransbordos());
+                rutaSeleccionada.setTransbordos(nuevosTransbordos);
+                rutaSeleccionada.setCosto(nuevoCosto);
+                rutaSeleccionada.setDistancia(nuevaDistancia);
+                rutaSeleccionada.setTiempo(nuevoTiempo);
 
-            Edge edge = graph.getEdge(rutaSeleccionada.getId());
-            if (edge != null) {
-                edge.setAttribute("ui.label", labelText);
+                Edge edge = graph.getEdge(rutaSeleccionada.getId());
+                if (edge != null) {
+                    edge.setAttribute("ui.label", labelText);
+                    edge.setAttribute("ruta", rutaSeleccionada);
+                }
+
+                mostrarAlerta(Alert.AlertType.INFORMATION, "Ruta Actualizada", null, "La ruta se ha actualizado exitosamente.");
+            } else {
+                mostrarAlerta(Alert.AlertType.ERROR, "Error", null, "No se pudo actualizar la ruta.");
             }
-
-            mostrarAlerta(Alert.AlertType.INFORMATION, "Ruta actualizada", null, "La ruta se ha actualizado exitosamente.");
-        } catch (RutaInexistenteException | ParadaInexistenteException e) {
-            mostrarAlerta(Alert.AlertType.ERROR, "Error", null, "No se pudo actualizar la ruta. Inténtelo más tarde.");
-            System.err.println("No se pudo actualizar la ruta: " + e);
+        } catch (RutaInexistenteException | ParadaInexistenteException | RutaDuplicadaException e) {
+            mostrarAlerta(Alert.AlertType.ERROR, "Error", null, "No se pudo actualizar la ruta.");
         }
+
     }
 
     /**
@@ -803,18 +818,25 @@ public class GrafoController implements ViewerListener {
         alert.setContentText("¿Está seguro que desea eliminar la ruta seleccionada?");
 
         Optional<ButtonType> result = alert.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            try {
-                grafoTransporte.eliminarRuta(rutaSeleccionada.getOrigenId(), rutaSeleccionada.getDestinoId());
+        if (result.isEmpty() || result.get() != ButtonType.OK) {
+            return;
+        }
+
+        try {
+            boolean eliminada = backendGrafoController.eliminarRuta(rutaSeleccionada.getId());
+            if (eliminada) {
                 graph.removeEdge(edge);
                 resetRuta();
                 desactivarPanelRutaParaEliminar();
-                mostrarAlerta(Alert.AlertType.INFORMATION, "Ruta eliminada", null, "La ruta ha sido eliminada.");
-            } catch (RutaInexistenteException | ParadaInexistenteException e) {
+                mostrarAlerta(Alert.AlertType.INFORMATION, "Ruta Eliminada", null, "La ruta ha sido eliminada.");
+            } else {
                 mostrarAlerta(Alert.AlertType.ERROR, "Error", null, "No se pudo eliminar la ruta. Inténtelo más tarde.");
-                System.err.println("No se pudo eliminar la ruta: " + e);
+                System.err.println("No se pudo eliminar la ruta.");
             }
+        } catch (RutaInexistenteException | ParadaInexistenteException e) {
+            mostrarAlerta(Alert.AlertType.ERROR, "Error", null, "No se pudo eliminar la ruta. Inténtelo más tarde.");
         }
+
     }
 
     /**
@@ -839,8 +861,6 @@ public class GrafoController implements ViewerListener {
         System.out.println("Salir de la aplicación");
         Platform.exit();
     }
-
-// Métodos Auxiliares
 
     private void resetUI() {
         resultadoDelCaminoMasCorto = null;
@@ -918,8 +938,6 @@ public class GrafoController implements ViewerListener {
         alert.showAndWait();
     }
 
-// Configuración de Spinners
-
     private void initializeSpinners() {
         configureIntegerSpinner(spinnerDistancia);
         configureIntegerSpinner(spinnerTiempo);
@@ -982,6 +1000,61 @@ public class GrafoController implements ViewerListener {
                     return spinner.getValue();
                 }
             }
+        });
+    }
+
+    /**
+     * Carga todas las paradas y rutas desde el backend y las agrega al grafo visual.
+     */
+    private void loadData() {
+        List<Parada> todasLasParadas = backendGrafoController.getAllParadas();
+
+        for (Parada parada : todasLasParadas) {
+            String nodeId = parada.getId();
+            if (graph.getNode(nodeId) == null) { // Evitar duplicados
+                Node nodo = graph.addNode(nodeId);
+                nodo.setAttribute("parada", parada);
+                nodo.setAttribute("ui.label", parada.getNombre());
+                nodo.setAttribute("layout.weight", 1);
+            }
+        }
+
+        List<Ruta> todasLasRutas = backendGrafoController.getAllRutas();
+
+        for (Ruta ruta : todasLasRutas) {
+            String edgeId = ruta.getId();
+            String origenId = ruta.getOrigenId();
+            String destinoId = ruta.getDestinoId();
+
+            Node origenNode = graph.getNode(origenId);
+            Node destinoNode = graph.getNode(destinoId);
+
+            if (origenNode == null || destinoNode == null) {
+                System.err.println("Error: Las paradas de origen o destino de la ruta '" + edgeId + "' no existen en el grafo visual.");
+                return;
+            }
+
+            if (graph.getEdge(edgeId) == null) {
+                try {
+                    Edge edge = graph.addEdge(edgeId, origenId, destinoId, true);
+                    edge.setAttribute("ui.interactive", true);
+                    edge.setAttribute("ruta", ruta);
+
+                    String labelText = String.format("Distancia: %d\nTiempo: %d\nCosto: %.2f\nTransbordos: %d",
+                            ruta.getDistancia(),
+                            ruta.getTiempo(),
+                            ruta.getCosto(),
+                            ruta.getTransbordos());
+                    edge.setAttribute("ui.label", labelText);
+                    edge.setAttribute("layout.weight", 5);
+                } catch (EdgeRejectedException e) {
+                    System.err.println("Error al agregar la ruta al grafo visual: " + e.getMessage());
+                }
+            }
+        }
+
+        Platform.runLater(() -> {
+            viewer.enableAutoLayout();
         });
     }
 
@@ -1067,7 +1140,7 @@ public class GrafoController implements ViewerListener {
                 pesoDistancia = 1;
             }
 
-            ResultadoRuta resultado = grafoTransporte.obtenerRutaEntreParadasConDijkstra(origen, destino, pesoTiempo, pesoDistancia, pesoTransbordos, pesoCosto);
+            ResultadoRuta resultado = backendGrafoController.obtenerRutaEntreParadasConDijkstra(origen, destino, pesoTiempo, pesoDistancia, pesoTransbordos, pesoCosto);
 
             if (resultado.paradas().isEmpty()) {
                 mostrarAlerta(Alert.AlertType.ERROR, "Camino mas corto", "Ruta no encontrada", "Lamentablemente no fue posible encontrar una ruta.");
@@ -1126,9 +1199,6 @@ public class GrafoController implements ViewerListener {
         mostrarAlerta(Alert.AlertType.INFORMATION, "Resultado del camino mas corto", "Resultado", resultadoDelCaminoMasCorto.toString());
     }
 
-
-// Implementación de ViewerListener
-
     @Override
     public void buttonPushed(String id) {
         handleNodeClicked(id);
@@ -1150,7 +1220,6 @@ public class GrafoController implements ViewerListener {
     public void mouseLeft(String id) {
     }
 
-    // Clases Internas
     private class CustomMouseManager extends FxMouseManager {
         public CustomMouseManager() {
             super(EnumSet.of(InteractiveElement.NODE, InteractiveElement.EDGE));

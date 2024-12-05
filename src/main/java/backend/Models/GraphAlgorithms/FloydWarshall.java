@@ -44,14 +44,12 @@ public class FloydWarshall extends AlgoritmoGrafo {
         predecesores = new int[V][V];
         double INF = Double.POSITIVE_INFINITY;
 
-        // Inicializar matrices
         for (int i = 0; i < V; i++) {
             Arrays.fill(distancias[i], INF);
             distancias[i][i] = 0;
             Arrays.fill(predecesores[i], -1);
         }
 
-        // Llenar distancias directas y predecesores
         for (Parada origenParada : grafo.obtenerParadas()) {
             int i = paradaIndices.get(origenParada);
             for (Ruta ruta : grafo.obtenerRutasDesde(origenParada)) {

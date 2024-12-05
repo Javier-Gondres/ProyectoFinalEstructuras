@@ -1,8 +1,8 @@
 package frontend.Controllers;
 
+import backend.Controllers.GrafoController;
 import backend.Models.Excepciones.ParadaInexistenteException;
 import backend.Models.Excepciones.RutaDuplicadaException;
-import backend.Models.Interfaces.Grafo;
 import backend.Models.Parada;
 import backend.Models.Ruta;
 import javafx.fxml.FXML;
@@ -33,11 +33,10 @@ public class CreateRutaDialogController {
     private Parada origen;
     private Parada destino;
 
-    private Grafo grafoTransporte;
-
     private Stage dialogStage;
     private boolean isConfirmed = false;
     private Ruta ruta;
+    private GrafoController backendGrafoController = GrafoController.getInstance();
 
     /**
      * Establece el Stage del diálogo.
@@ -67,13 +66,6 @@ public class CreateRutaDialogController {
     }
 
     /**
-     * Establece el grafo de transporte.
-     */
-    public void setGrafoTransporte(Grafo grafoTransporte) {
-        this.grafoTransporte = grafoTransporte;
-    }
-
-    /**
      * Devuelve si el usuario confirmó la creación.
      */
     public boolean isConfirmed() {
@@ -99,12 +91,20 @@ public class CreateRutaDialogController {
             int transbordos = Integer.parseInt(transbordosField.getText().trim());
 
             ruta = new Ruta(origen.getId(), destino.getId(), tiempo, distancia, costo, transbordos);
+
             try {
-                grafoTransporte.agregarRuta(ruta);
-                isConfirmed = true;
-                dialogStage.close();
-            } catch (RutaDuplicadaException | ParadaInexistenteException e) {
-                mostrarAlertaError("Error al Crear Ruta", e.getMessage());
+                isConfirmed = backendGrafoController.crearRuta(ruta);
+            } catch (ParadaInexistenteException | RutaDuplicadaException e) {
+                isConfirmed = false;
+            }
+            dialogStage.close();
+
+            if (!isConfirmed) {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText("No se pudo crear la ruta");
+                alert.setContentText(null);
+                alert.showAndWait();
             }
         }
     }
