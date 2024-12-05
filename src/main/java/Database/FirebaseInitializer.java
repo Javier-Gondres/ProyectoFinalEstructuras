@@ -1,4 +1,4 @@
-package main.Database;
+package Database;
 
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
@@ -14,7 +14,7 @@ public class FirebaseInitializer {
 
     private FirebaseInitializer() {
         try {
-            InputStream serviceAccount = getClass().getResourceAsStream("/main/environment/firebaseCredentials.json");
+            InputStream serviceAccount = getClass().getResourceAsStream("/environment/firebaseCredentials.json");
             if (serviceAccount == null) {
                 throw new RuntimeException("No se encontró el archivo de credenciales de Firebase.");
             }

@@ -2,6 +2,7 @@ package frontend.Controllers;
 
 import backend.Models.Excepciones.*;
 import backend.Models.*;
+import frontend.Controllers.enums.Mode;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.event.EventHandler;

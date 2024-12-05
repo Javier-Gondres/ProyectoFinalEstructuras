@@ -3,7 +3,7 @@ package backend.Repositories;
 import backend.Models.Parada;
 import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.*;
-import main.Database.FirebaseInitializer;
+import Database.FirebaseInitializer;
 
 import java.util.ArrayList;
 import java.util.List;
