@@ -31,7 +31,9 @@ considerando todos los posibles caminos intermedios.
 
 Decisiones de Diseño:
 
-Patrón Singleton: Se utilizó el patrón Singleton para asegurar que solo exista una instancia
+-Patrón Singleton: Se utilizó el patrón Singleton para asegurar que solo exista una instancia
 de los controladores principales (GrafoController, GrafoTransporte).
 
+-Uso del Patron de diseño MVC
 
+-Uso de controladores, servicios, modelos y repositorios.

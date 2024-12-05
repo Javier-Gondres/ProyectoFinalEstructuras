@@ -1141,7 +1141,8 @@ public class FrontendGrafoController implements ViewerListener {
                 pesoDistancia = 1;
             }
 
-            ResultadoRuta resultado = backendGrafoController.obtenerRutaEntreParadasConDijkstra(origen, destino, pesoTiempo, pesoDistancia, pesoTransbordos, pesoCosto);
+            ObtenerRutaParam props = new ObtenerRutaParam(origen, destino, pesoTiempo, pesoDistancia, pesoTransbordos, pesoCosto);
+            ResultadoRuta resultado = backendGrafoController.obtenerRutaEntreParadasConDijkstra(props);
 
             if (resultado.paradas().isEmpty()) {
                 mostrarAlerta(Alert.AlertType.ERROR, "Camino mas corto", "Ruta no encontrada", "Lamentablemente no fue posible encontrar una ruta.");

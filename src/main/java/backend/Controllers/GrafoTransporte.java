@@ -4,6 +4,7 @@ import backend.Models.Excepciones.ParadaInexistenteException;
 import backend.Models.Excepciones.RutaInexistenteException;
 import backend.Models.GraphAlgorithms.Dijkstra;
 import backend.Models.GraphAlgorithms.FloydWarshall;
+import backend.Models.ObtenerRutaParam;
 import backend.Models.Parada;
 import backend.Models.ResultadoRuta;
 import backend.Models.Ruta;
@@ -203,50 +204,37 @@ public class GrafoTransporte {
     /**
      * Obtiene la ruta más corta entre dos paradas utilizando el algoritmo de Dijkstra.
      *
-     * @param origen          La parada de origen.
-     * @param destino         La parada de destino.
-     * @param pesoTiempo      Peso asignado al tiempo.
-     * @param pesoDistancia   Peso asignado a la distancia.
-     * @param pesoTransbordos Peso asignado a los transbordos.
-     * @param pesoCosto       Peso asignado al costo.
+     * @param props Objeto con los parametros de la funcion.
      * @return El resultado de la ruta más corta.
      * @throws ParadaInexistenteException Si alguna de las paradas no existe.
      */
-    public ResultadoRuta obtenerRutaEntreParadasConDijkstra(Parada origen, Parada destino,
-                                                            double pesoTiempo, double pesoDistancia,
-                                                            double pesoTransbordos, double pesoCosto)
+    public ResultadoRuta obtenerRutaEntreParadasConDijkstra(ObtenerRutaParam props)
             throws ParadaInexistenteException {
 
-        GrafoUtils.verificarParadasExistentes(origen, destino);
+        GrafoUtils.verificarParadasExistentes(props.origen(), props.destino());
 
-        Dijkstra dijkstra = new Dijkstra(pesoTiempo, pesoDistancia, pesoTransbordos, pesoCosto);
+        Dijkstra dijkstra = new Dijkstra(props.pesoTiempo(), props.pesoDistancia(), props.pesoTransbordos(), props.pesoCosto());
 
-        return dijkstra.obtenerRutaEntreParadas(origen, destino);
+        return dijkstra.obtenerRutaEntreParadas(props.origen(), props.destino());
     }
 
     /**
      * Obtiene la ruta más corta entre dos paradas utilizando el algoritmo de Floyd-Warshall.
      *
-     * @param origen          La parada de origen.
-     * @param destino         La parada de destino.
-     * @param pesoTiempo      Peso asignado al tiempo.
-     * @param pesoDistancia   Peso asignado a la distancia.
-     * @param pesoTransbordos Peso asignado a los transbordos.
-     * @param pesoCosto       Peso asignado al costo.
+     * @param props Objeto con los parametros de la funcion.
      * @return El resultado de la ruta más corta.
+     * @throws ParadaInexistenteException Si alguna de las paradas no existe.
      * @throws ParadaInexistenteException Si alguna de las paradas no existe.
      * @throws RutaInexistenteException   Si la ruta no existe.
      */
-    public ResultadoRuta obtenerRutaEntreParadasConFloyd(Parada origen, Parada destino,
-                                                         double pesoTiempo, double pesoDistancia,
-                                                         double pesoTransbordos, double pesoCosto)
+    public ResultadoRuta obtenerRutaEntreParadasConFloyd(ObtenerRutaParam props)
             throws ParadaInexistenteException, RutaInexistenteException {
 
-        GrafoUtils.verificarParadasExistentes(origen, destino);
+        GrafoUtils.verificarParadasExistentes(props.origen(), props.destino());
 
-        FloydWarshall floydWarshall = new FloydWarshall(pesoTiempo, pesoDistancia, pesoTransbordos, pesoCosto);
+        FloydWarshall floydWarshall = new FloydWarshall(props.pesoTiempo(), props.pesoDistancia(), props.pesoTransbordos(), props.pesoCosto());
 
-        return floydWarshall.obtenerRutaEntreParadas(origen, destino);
+        return floydWarshall.obtenerRutaEntreParadas(props.origen(), props.destino());
     }
 
     /**
