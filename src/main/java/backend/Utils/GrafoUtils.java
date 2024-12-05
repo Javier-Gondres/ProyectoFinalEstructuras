@@ -1,7 +1,7 @@
 package backend.Utils;
 
 import backend.Models.Excepciones.ParadaInexistenteException;
-import backend.Models.GrafoTransporte;
+import backend.Controllers.GrafoTransporte;
 import backend.Models.Parada;
 import backend.Models.ParadaWrapper;
 import backend.Models.Ruta;
@@ -12,13 +12,15 @@ import java.util.List;
 
 public final class GrafoUtils {
 
+    private static final GrafoTransporte grafo = GrafoTransporte.getInstance();
+
     public static double[] normalizarPesos(double pesoTiempo, double pesoDistancia, double pesoTransbordos, double pesoCosto) {
         double sumaPesos = pesoTiempo + pesoDistancia + pesoTransbordos + pesoCosto;
         if (sumaPesos == 0) {
             // Priorizar distancia por defecto
-            return new double[] { 0.0, 1.0, 0.0, 0.0 };
+            return new double[]{0.0, 1.0, 0.0, 0.0};
         }
-        return new double[] {
+        return new double[]{
                 pesoTiempo / sumaPesos,
                 pesoDistancia / sumaPesos,
                 pesoTransbordos / sumaPesos,
@@ -33,7 +35,7 @@ public final class GrafoUtils {
                 (pesoCosto * ruta.getCosto());
     }
 
-    public static void verificarParadasExistentes(GrafoTransporte grafo, Parada origen, Parada destino) throws ParadaInexistenteException {
+    public static void verificarParadasExistentes(Parada origen, Parada destino) throws ParadaInexistenteException {
         if (!grafo.contieneParada(origen)) {
             throw new ParadaInexistenteException("Error: La parada de origen '" + origen.getNombre() + "' no existe.");
         }

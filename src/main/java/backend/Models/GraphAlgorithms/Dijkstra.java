@@ -1,5 +1,6 @@
 package backend.Models.GraphAlgorithms;
 
+import backend.Controllers.GrafoTransporte;
 import backend.Models.*;
 import backend.Utils.GrafoUtils;
 

@@ -1,6 +1,5 @@
 package backend.Controllers;
 
-import backend.Models.GrafoTransporte;
 import backend.Models.Parada;
 import backend.Models.ResultadoRuta;
 import backend.Models.Ruta;

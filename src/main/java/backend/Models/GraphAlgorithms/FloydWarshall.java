@@ -2,7 +2,7 @@ package backend.Models.GraphAlgorithms;
 
 import backend.Models.Excepciones.ParadaInexistenteException;
 import backend.Models.Excepciones.RutaInexistenteException;
-import backend.Models.GrafoTransporte;
+import backend.Controllers.GrafoTransporte;
 import backend.Models.Parada;
 import backend.Models.ResultadoRuta;
 import backend.Models.Ruta;
@@ -12,14 +12,13 @@ import java.util.*;
 
 public class FloydWarshall extends AlgoritmoGrafo {
 
-    private GrafoTransporte grafo;
+    private GrafoTransporte grafo = GrafoTransporte.getInstance();
     private double[][] distancias;
     private int[][] predecesores;
     private Map<Parada, Integer> paradaIndices;
     private Map<Integer, Parada> indiceParadas;
 
-    public FloydWarshall(GrafoTransporte grafo, double pesoTiempo, double pesoDistancia, double pesoTransbordos, double pesoCosto) {
-        this.grafo = grafo;
+    public FloydWarshall(double pesoTiempo, double pesoDistancia, double pesoTransbordos, double pesoCosto) {
         ejecutarFloydWarshall(pesoTiempo, pesoDistancia, pesoTransbordos, pesoCosto);
     }
 

@@ -1,15 +1,18 @@
-package backend.Models;
+package backend.Controllers;
 
 import backend.Models.Excepciones.ParadaInexistenteException;
 import backend.Models.Excepciones.RutaInexistenteException;
 import backend.Models.GraphAlgorithms.Dijkstra;
 import backend.Models.GraphAlgorithms.FloydWarshall;
+import backend.Models.Parada;
+import backend.Models.ResultadoRuta;
+import backend.Models.Ruta;
 import backend.Utils.GrafoUtils;
 
 import java.util.*;
 
 public class GrafoTransporte {
-    private static final GrafoTransporte INSTANCE = new GrafoTransporte();
+    private static GrafoTransporte instance;
 
     private final Map<Parada, List<Ruta>> listaAdyacencia;
     private final Set<String> nombresExistentes;
@@ -21,8 +24,11 @@ public class GrafoTransporte {
         paradas = new HashMap<>();
     }
 
-    public static GrafoTransporte getInstance() {
-        return INSTANCE;
+    public static synchronized GrafoTransporte getInstance() {
+        if (instance == null) {
+            instance = new GrafoTransporte();
+        }
+        return instance;
     }
 
     /**
@@ -197,12 +203,12 @@ public class GrafoTransporte {
     /**
      * Obtiene la ruta más corta entre dos paradas utilizando el algoritmo de Dijkstra.
      *
-     * @param origen           La parada de origen.
-     * @param destino          La parada de destino.
-     * @param pesoTiempo       Peso asignado al tiempo.
-     * @param pesoDistancia    Peso asignado a la distancia.
-     * @param pesoTransbordos  Peso asignado a los transbordos.
-     * @param pesoCosto        Peso asignado al costo.
+     * @param origen          La parada de origen.
+     * @param destino         La parada de destino.
+     * @param pesoTiempo      Peso asignado al tiempo.
+     * @param pesoDistancia   Peso asignado a la distancia.
+     * @param pesoTransbordos Peso asignado a los transbordos.
+     * @param pesoCosto       Peso asignado al costo.
      * @return El resultado de la ruta más corta.
      * @throws ParadaInexistenteException Si alguna de las paradas no existe.
      */
@@ -211,7 +217,7 @@ public class GrafoTransporte {
                                                             double pesoTransbordos, double pesoCosto)
             throws ParadaInexistenteException {
 
-        GrafoUtils.verificarParadasExistentes(this, origen, destino);
+        GrafoUtils.verificarParadasExistentes(origen, destino);
 
         Dijkstra dijkstra = new Dijkstra(pesoTiempo, pesoDistancia, pesoTransbordos, pesoCosto);
 
@@ -221,12 +227,12 @@ public class GrafoTransporte {
     /**
      * Obtiene la ruta más corta entre dos paradas utilizando el algoritmo de Floyd-Warshall.
      *
-     * @param origen           La parada de origen.
-     * @param destino          La parada de destino.
-     * @param pesoTiempo       Peso asignado al tiempo.
-     * @param pesoDistancia    Peso asignado a la distancia.
-     * @param pesoTransbordos  Peso asignado a los transbordos.
-     * @param pesoCosto        Peso asignado al costo.
+     * @param origen          La parada de origen.
+     * @param destino         La parada de destino.
+     * @param pesoTiempo      Peso asignado al tiempo.
+     * @param pesoDistancia   Peso asignado a la distancia.
+     * @param pesoTransbordos Peso asignado a los transbordos.
+     * @param pesoCosto       Peso asignado al costo.
      * @return El resultado de la ruta más corta.
      * @throws ParadaInexistenteException Si alguna de las paradas no existe.
      * @throws RutaInexistenteException   Si la ruta no existe.
@@ -236,9 +242,9 @@ public class GrafoTransporte {
                                                          double pesoTransbordos, double pesoCosto)
             throws ParadaInexistenteException, RutaInexistenteException {
 
-        GrafoUtils.verificarParadasExistentes(this, origen, destino);
+        GrafoUtils.verificarParadasExistentes(origen, destino);
 
-        FloydWarshall floydWarshall = new FloydWarshall(this, pesoTiempo, pesoDistancia, pesoTransbordos, pesoCosto);
+        FloydWarshall floydWarshall = new FloydWarshall(pesoTiempo, pesoDistancia, pesoTransbordos, pesoCosto);
 
         return floydWarshall.obtenerRutaEntreParadas(origen, destino);
     }
